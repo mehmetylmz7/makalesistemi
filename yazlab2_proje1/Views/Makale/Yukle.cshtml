@@ -1,0 +1,26 @@
+﻿@{
+    ViewData["Title"] = "Makale Yükleme";
+}
+
+<h2>Makale Yükleme</h2>
+
+<form asp-controller="Makale" asp-action="Yukle" method="post" enctype="multipart/form-data">
+    <div class="mb-3">
+        <label for="Eposta" class="form-label">E-Posta Adresiniz:</label>
+        <input type="email" class="form-control" name="Eposta" required />
+    </div>
+
+    <div class="mb-3">
+        <label for="Dosya" class="form-label">PDF Dosyası Yükle:</label>
+        <input type="file" class="form-control" name="Dosya" accept=".pdf" required />
+    </div>
+
+    <button type="submit" class="btn btn-primary">Yükle</button>
+</form>
+
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-info mt-3">
+        @ViewData["Message"]
+    </div>
+}

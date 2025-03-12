@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using makalesistemi.Models;
+using Microsoft.EntityFrameworkCore;
 
 namespace makalesistemi.Models
 {
@@ -10,63 +11,65 @@ namespace makalesistemi.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("server=DIDIM\\SQLEXPRESS; database=makalesistemi; integrated security=true;TrustServerCertificate = True;");
+                optionsBuilder.UseSqlServer("server=DIDIM\\SQLEXPRESS; database=makalesistemi; integrated security=true;TrustServerCertificate=True;");
             }
         }
-        // DbSet'ler (Tablolar)
-        public DbSet<Author> Authors { get; set; }
-        public DbSet<Editor> Editors { get; set; }
-        public DbSet<Reviewer> Reviewers { get; set; }
-        public DbSet<Article> Articles { get; set; }
-        public DbSet<Review> Reviews { get; set; }
-        public DbSet<Anonymization> Anonymizations { get; set; }
-        public DbSet<Log> Logs { get; set; }
 
-        // Fluent API konfigürasyonları (isteğe bağlı, ilişkileri özelleştirebilirsiniz)
+        public DbSet<Yazar> Yazarlar { get; set; }
+        public DbSet<Makale> Makaleler { get; set; }
+        public DbSet<Editor> Editorler { get; set; }
+        public DbSet<Hakem> Hakemler { get; set; }
+        public DbSet<Log> Loglar { get; set; }
+        public DbSet<Anonimlestirme> Anonimlestirmeler { get; set; }
+        public DbSet<Degerlendirme> Degerlendirmeler { get; set; }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            base.OnModelCreating(modelBuilder);
+            // Birleşik anahtarları belirtin (Eğer Gerekirse)
+            modelBuilder.Entity<Degerlendirme>()
+                .HasKey(d => new { d.Id, d.MakaleId, d.HakemId });
 
-            // Editor sadece bir tane olacağı için, bunu veritabanında tekil yapmak için:
-            modelBuilder.Entity<Editor>()
-                .HasData(new Editor { Id = 1, Email = "editor@domain.com", CreatedAt = DateTime.UtcNow });
+            // Makale - Yazar ilişkisi (1-N)
+            modelBuilder.Entity<Makale>()
+                .HasOne(m => m.Yazar)
+                .WithMany(y => y.Makaleler)
+                .HasForeignKey(m => m.YazarId)
+                .OnDelete(DeleteBehavior.Restrict);
 
-            // İlişkiler ve diğer konfigürasyonlar
-            modelBuilder.Entity<Article>()
-                .HasOne(a => a.Author)
-                .WithMany(a => a.Articles)
-                .HasForeignKey(a => a.AuthorId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Article>()
-                .HasOne(a => a.Reviewer)
-                .WithMany(r => r.Reviews)
-                .HasForeignKey(a => a.ReviewerId)
+            // Makale - Hakem ilişkisi (1-1 opsiyonel)
+            modelBuilder.Entity<Makale>()
+                .HasOne(m => m.Hakem)
+                .WithMany(h => h.Makaleler)
+                .HasForeignKey(m => m.HakemId)
                 .OnDelete(DeleteBehavior.SetNull);
 
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Article)
-                .WithMany(a => a.Reviews)
-                .HasForeignKey(r => r.ArticleId)
-                .OnDelete(DeleteBehavior.Cascade);
-
-            modelBuilder.Entity<Review>()
-                .HasOne(r => r.Reviewer)
-                .WithMany()
-                .HasForeignKey(r => r.ReviewerId)
-                .OnDelete(DeleteBehavior.Restrict);
-
-            modelBuilder.Entity<Anonymization>()
-                .HasOne(a => a.Article)
-                .WithMany()
-                .HasForeignKey(a => a.ArticleId)
-                .OnDelete(DeleteBehavior.Cascade);
-
+            // Makale - Log ilişkisi (1-N)
             modelBuilder.Entity<Log>()
-                .HasOne(l => l.Author)
-                .WithMany()
-                .HasForeignKey(l => l.PerformedBy)
-                .OnDelete(DeleteBehavior.Restrict);
+                .HasOne(l => l.Makale)
+                .WithMany(m => m.Loglar)
+                .HasForeignKey(l => l.MakaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Makale - Anonimleştirme ilişkisi (1-N)
+            modelBuilder.Entity<Anonimlestirme>()
+                .HasOne(a => a.Makale)
+                .WithMany(m => m.Anonimlestirmeler)
+                .HasForeignKey(a => a.MakaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Makale - Değerlendirme ilişkisi (1-N)
+            modelBuilder.Entity<Degerlendirme>()
+                .HasOne(d => d.Makale)
+                .WithMany(m => m.Degerlendirmeler)
+                .HasForeignKey(d => d.MakaleId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            // Hakem - Değerlendirme ilişkisi (1-N)
+            modelBuilder.Entity<Degerlendirme>()
+                .HasOne(d => d.Hakem)
+                .WithMany(h => h.Degerlendirmeler)
+                .HasForeignKey(d => d.HakemId)
+                .OnDelete(DeleteBehavior.Cascade);
         }
     }
 }

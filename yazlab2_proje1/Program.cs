@@ -1,27 +1,66 @@
+using makalesistemi;
+using makalesistemi.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
+// MVC ve API Controller'larý ekleyelim
 builder.Services.AddControllersWithViews();
+builder.Services.AddControllers();
+
+// DbContext'i DI Konteynerine ekleyelim
+builder.Services.AddDbContext<Context>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// CORS politikasýný ekleyelim (Geliþtirme ve Prod ayrýmý yapýldý)
+builder.Services.AddCors(options =>
+{
+    if (builder.Environment.IsDevelopment())
+    {
+        options.AddPolicy("AllowAll", policy =>
+        {
+            policy.AllowAnyOrigin()
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    }
+    else
+    {
+        options.AddPolicy("Restricted", policy =>
+        {
+            policy.WithOrigins("https://your-production-domain.com") // Prod ortamýnda sadece belirli domainlere izin ver
+                  .AllowAnyMethod()
+                  .AllowAnyHeader();
+        });
+    }
+});
+
+// Servisleri Dependency Injection Container'a ekle
+builder.Services.AddScoped<PdfAnonymizationService>(); // Eðer PDF servisiniz varsa DI ile ekleyin
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Eðer geliþtirme ortamýnda deðilsek, hata yönetimini aç
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
 app.UseStaticFiles();
-
 app.UseRouting();
+
+// CORS politikasýný burada kullan (UseRouting'ten sonra, UseAuthorization'dan önce)
+app.UseCors(builder.Environment.IsDevelopment() ? "AllowAll" : "Restricted");
 
 app.UseAuthorization();
 
+// Hem API hem de MVC yönlendirmeleri için
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
+
+app.MapControllers(); // API Controller'larýný dahil eder
 
 app.Run();

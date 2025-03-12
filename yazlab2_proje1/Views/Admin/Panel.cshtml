@@ -1,0 +1,80 @@
+﻿@model Tuple<List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Hakem>>
+
+@{
+    ViewData["Title"] = "Yönetici Paneli";
+    var anonimMakaleListesi = Model.Item1; // Anonimleştirilmiş makaleler
+    var anonimDegilMakaleListesi = Model.Item2; // Anonimleştirilmemiş makaleler
+    var hakemListesi = Model.Item3; // Hakemler
+}
+
+<h2 class="text-center">📌 Yönetici Paneli</h2>
+
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-info text-center">
+        @ViewData["Message"]
+    </div>
+}
+
+<!-- 🔴 Anonimleştirilmemiş Makaleler -->
+<h3 class="mt-4">🔴 Anonimleştirilmemiş Makaleler</h3>
+<table class="table table-bordered">
+    <thead class="table-dark">
+        <tr>
+            <th>ID</th>
+            <th>Dosya Yolu</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var makale in anonimDegilMakaleListesi)
+        {
+            <tr>
+                <td>@makale.Id</td>
+                <td><a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
+                <td>
+                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
+                    <a asp-controller="Admin" asp-action="Anonimlestir" asp-route-id="@makale.Id" class="btn btn-warning">🔏 Anonimleştir</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- 🟢 Anonimleştirilmiş Makaleler -->
+<h3 class="mt-4">🟢 Anonimleştirilmiş Makaleler</h3>
+<table class="table table-bordered">
+    <thead class="table-success">
+        <tr>
+            <th>ID</th>
+            <th>Dosya Yolu</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var makale in anonimMakaleListesi)
+        {
+            <tr>
+                <td>@makale.Id</td>
+                <td><a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
+                <td>
+                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
+
+                    <!-- 🔽 Hakem Seçme Formu -->
+                    <form asp-controller="Admin" asp-action="HakemeYolla" method="post" class="d-inline">
+                        <input type="hidden" name="makaleId" value="@makale.Id" />
+
+                        <select name="hakemId" class="form-select d-inline w-auto">
+                            @foreach (var hakem in hakemListesi)
+                            {
+                                <option value="@hakem.Id">@hakem.Isim</option>
+                            }
+                        </select>
+
+                        <button type="submit" class="btn btn-success">📤 Hakeme Yönlendir</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

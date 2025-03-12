@@ -3,19 +3,13 @@ using System.ComponentModel.DataAnnotations;
 
 namespace makalesistemi.Models
 {
-    public class Log
+    public class Anonimlestirme
     {
         [Key]
         public int Id { get; set; }
 
         [Required]
         public int MakaleId { get; set; }
-
-        [Required]
-        public string IslemTuru { get; set; } // Örn: "Yüklendi", "Hakeme Atandı", "Değerlendirildi"
-
-        [Required]
-        public DateTime Tarih { get; set; }
 
         [ForeignKey("MakaleId")]
         public Makale Makale { get; set; }

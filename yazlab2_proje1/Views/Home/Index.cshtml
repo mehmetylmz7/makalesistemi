@@ -15,16 +15,16 @@
         <h1>Güvenli Belge Anonimleştirme Sistemi</h1>
         <div class="row mt-4">
             <div class="col-md-6 mb-3">
-                <a href="/Makale/Yukleme" class="btn btn-primary btn-lg w-100">📄 Makale Yükleme</a>
+                <a asp-controller="Makale" asp-action="Yukle" class="btn btn-primary btn-lg w-100">📄 Makale Yükleme</a>
             </div>
             <div class="col-md-6 mb-3">
-                <a href="/Makale/Durum" class="btn btn-secondary btn-lg w-100">🔍 Makale Durum Sorgulama</a>
+                <a asp-controller="Makale" asp-action="Durum" class="btn btn-secondary btn-lg w-100">🔍 Makale Durum Sorgulama</a>
             </div>
             <div class="col-md-6 mb-3">
-                <a href="/Admin/Panel" class="btn btn-warning btn-lg w-100">⚙️ Yönetici Paneli</a>
+                <a asp-controller="Admin" asp-action="Panel" class="btn btn-warning btn-lg w-100">⚙️ Yönetici Paneli</a>
             </div>
             <div class="col-md-6 mb-3">
-                <a href="/Hakem/Panel" class="btn btn-success btn-lg w-100">📝 Hakem Paneli</a>
+                <a asp-controller="Hakem" asp-action="Panel" class="btn btn-success btn-lg w-100">📝 Hakem Paneli</a>
             </div>
         </div>
     </div>
