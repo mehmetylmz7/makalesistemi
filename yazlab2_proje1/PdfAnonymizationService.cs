@@ -1,85 +1,58 @@
-﻿using System;
-using System.IO;
-using System.Text.RegularExpressions;
-using iText.Kernel.Pdf;
+﻿using iText.Kernel.Pdf;
 using iText.Kernel.Pdf.Canvas.Parser;
 using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using iText.Kernel.Pdf.Canvas.Parser.Data;
+using iText.Kernel.Pdf.Canvas.Parser.Filter;
+using iText.Kernel.Pdf.Canvas.Parser.Listener;
+using iText.Kernel.Pdf.Xobject;
+using iText.Kernel.Geom;
+using iText.Kernel.Colors;
+using iText.Kernel.Pdf.Canvas;
 using iText.Layout;
 using iText.Layout.Element;
-using makalesistemi.Models;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using System.Linq;
-using System.Threading.Tasks;
-using iText.Kernel.Pdf.Canvas;
-
+using System;
+using System.IO;
+using System.Text.RegularExpressions;
 
 namespace makalesistemi
 {
     public class PdfAnonymizationService
     {
-        public string AnonymizePdf(string inputPdfPath, string outputPdfPath)
+        public void AnonymizePdf(string inputPdfPath, string outputPdfPath)
         {
             try
             {
-                // 📌 Öncelikle, PDF'yi okuma modunda aç ve metni al
-                string extractedText;
                 using (PdfReader reader = new PdfReader(inputPdfPath))
-                using (PdfDocument pdfDoc = new PdfDocument(reader))
+                using (PdfWriter writer = new PdfWriter(outputPdfPath))
+                using (PdfDocument pdfDoc = new PdfDocument(reader, writer))
                 {
-                    extractedText = "";
                     for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
                     {
-                        ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-                        extractedText += PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
+                        PdfPage page = pdfDoc.GetPage(i);
+                        PdfCanvas pdfCanvas = new PdfCanvas(page.NewContentStreamBefore(), page.GetResources(), pdfDoc);
+
+                        // Sayfadaki metni bul ve değiştir
+                        ITextExtractionStrategy strategy = new FilteredTextEventListener(new LocationTextExtractionStrategy(), new TextRegionEventFilter(page.GetPageSize()));
+                        string text = PdfTextExtractor.GetTextFromPage(page, strategy);
+
+                        // Metni anonimleştir
+                        string anonymizedText = AnonymizeText(text);
+
+                        // Orijinal metni sil
+                        pdfCanvas.SaveState();
+                        pdfCanvas.SetFillColor(ColorConstants.WHITE);
+                        pdfCanvas.Rectangle(page.GetPageSize());
+                        pdfCanvas.Fill();
+                        pdfCanvas.RestoreState();
+
+                        // Yeni metni ekle
+                        Canvas canvas = new Canvas(pdfCanvas, page.GetPageSize());
+                        canvas.Add(new Paragraph(anonymizedText));
+                        canvas.Close();
                     }
-                } // 📌 Burada dosya kapanmış olacak!
-
-                // 📌 Şimdi metni anonimleştir
-                string anonymizedText = AnonymizeText(extractedText);
-
-                // 📌 Yeni PDF dosyası oluştur ve anonimleştirilmiş metni kaydet
-                using (PdfWriter writer = new PdfWriter(outputPdfPath))
-                using (PdfDocument newPdfDoc = new PdfDocument(writer))
-                {
-                    Document document = new Document(newPdfDoc);
-                    document.Add(new Paragraph(anonymizedText));
                 }
 
-                return outputPdfPath;
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Hata oluştu: " + ex.ToString());
-                throw;
-            }
-        }
-
-
-        public string ExtractTextFromPdf(string filePath)
-        {
-            try
-            {
-                // 📌 Dosyanın var olup olmadığını kontrol et
-                if (!File.Exists(filePath))
-                {
-                    Console.WriteLine($"Hata: PDF dosyası bulunamadı -> {filePath}");
-                    throw new FileNotFoundException("PDF dosyası bulunamadı.", filePath);
-                }
-
-                using PdfReader reader = new PdfReader(filePath);
-                using PdfDocument pdfDoc = new PdfDocument(reader);
-                string text = string.Empty;
-
-                for (int i = 1; i <= pdfDoc.GetNumberOfPages(); i++)
-                {
-                    ITextExtractionStrategy strategy = new SimpleTextExtractionStrategy();
-                    text += PdfTextExtractor.GetTextFromPage(pdfDoc.GetPage(i), strategy);
-                }
-
-                return text;
+                Console.WriteLine("PDF başarıyla anonimleştirildi ve kaydedildi.");
             }
             catch (Exception ex)
             {
@@ -102,36 +75,5 @@ namespace makalesistemi
 
             return text;
         }
-
-        public void SaveAnonymizedPdf(string anonymizedText, string outputPath)
-        {
-            try
-            {
-                // 📌 Çıkış klasörünü oluştur
-                string directoryPath = Path.GetDirectoryName(outputPath);
-                if (!Directory.Exists(directoryPath))
-                {
-                    Console.WriteLine($"Dizin oluşturuluyor: {directoryPath}");
-                    Directory.CreateDirectory(directoryPath);
-                }
-
-                // 📌 PDF kaydetme işlemi
-                Console.WriteLine($"Anonymized PDF kaydediliyor -> {outputPath}");
-                using FileStream fs = new FileStream(outputPath, FileMode.Create);
-                using PdfWriter writer = new PdfWriter(fs);
-                using PdfDocument pdfDoc = new PdfDocument(writer);
-                Document document = new Document(pdfDoc);
-                document.Add(new Paragraph(anonymizedText));
-                document.Close();
-
-                Console.WriteLine("PDF başarıyla kaydedildi.");
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine("Hata: " + ex.ToString());
-                throw;
-            }
-        }
-
     }
 }
