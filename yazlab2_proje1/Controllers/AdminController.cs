@@ -65,14 +65,31 @@ namespace makalesistemi.Controllers
                 return RedirectToAction("Panel");
             }
 
-            // 📌 Dosya yolu al ve anonimleştirme işlemini uygula
+            // 📌 Dosya yollarını oluştur
             string inputPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu.TrimStart('/'));
-            string outputPath = Path.Combine(_hostEnvironment.WebRootPath, "makaleler", Path.GetFileName(makale.DosyaYolu));
+            string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "makaleler");
+
+            // 📌 Hata ayıklama için yolları yazdır
+            Console.WriteLine($"Giriş Dosya Yolu (inputPath): {inputPath}");
+            Console.WriteLine($"Çıkış Klasörü (outputDir): {outputDir}");
 
             if (!System.IO.File.Exists(inputPath))
             {
+                Console.WriteLine("Hata: Giriş PDF dosyası bulunamadı!");
                 return NotFound("Makale dosyası mevcut değil.");
             }
+
+            // 📌 Çıkış dizini yoksa oluştur
+            if (!Directory.Exists(outputDir))
+            {
+                Directory.CreateDirectory(outputDir);
+                Console.WriteLine("Çıkış dizini oluşturuldu.");
+            }
+
+            string outputPath = Path.Combine(outputDir, Path.GetFileName(makale.DosyaYolu));
+
+            // 📌 Çıkış yolunu yazdır
+            Console.WriteLine($"Çıkış Dosya Yolu (outputPath): {outputPath}");
 
             _pdfAnonymizationService.AnonymizePdf(inputPath, outputPath);
 
