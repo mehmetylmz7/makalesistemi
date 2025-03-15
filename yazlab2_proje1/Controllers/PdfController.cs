@@ -39,9 +39,10 @@ public class PdfController : ControllerBase
                 file.CopyTo(stream);
             }
 
-            string anonymizedFilePath = _pdfService.AnonymizePdf(inputFilePath, outputFilePath);
+            // 📌 Burada bir değişkene atamak yerine direkt metodu çağırıyoruz
+            _pdfService.AnonymizePdf(inputFilePath, outputFilePath);
 
-            byte[] fileBytes = System.IO.File.ReadAllBytes(anonymizedFilePath);
+            byte[] fileBytes = System.IO.File.ReadAllBytes(outputFilePath); // ✅ outputFilePath direkt kullanılabilir
             return File(fileBytes, "application/pdf", fileName);
         }
         catch (Exception ex)
@@ -49,4 +50,5 @@ public class PdfController : ControllerBase
             return StatusCode(500, "Bir hata oluştu: " + ex.Message);
         }
     }
+
 }

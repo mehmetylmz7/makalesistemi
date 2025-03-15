@@ -84,35 +84,21 @@ namespace makalesistemi.Controllers
             string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "makaleler");
             string outputPath = Path.Combine(outputDir, Path.GetFileName(makale.DosyaYolu));
 
-            Console.WriteLine($"Giriş Dosya Yolu (inputPath): {inputPath}");
-            Console.WriteLine($"Çıkış Dosya Yolu (outputPath): {outputPath}");
-
-            if (!System.IO.File.Exists(inputPath))
-            {
-                Console.WriteLine("Hata: Giriş PDF dosyası bulunamadı!");
-                return NotFound("Makale dosyası mevcut değil.");
-            }
-
-            // 📌 Dosyanın kilitli olup olmadığını kontrol et
-            if (IsFileLocked(inputPath))
-            {
-                Console.WriteLine("Hata: Dosya başka bir işlem tarafından kullanılıyor.");
-                return BadRequest("Makale dosyası şu anda başka bir işlem tarafından kullanılıyor. Lütfen tekrar deneyin.");
-            }
-
             // 📌 Çıkış dizini yoksa oluştur
             if (!Directory.Exists(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
-                Console.WriteLine("Çıkış dizini oluşturuldu.");
             }
 
-            // 📌 Dosya paylaşımını düzenle ve işlemi gerçekleştir
-            using (FileStream fs = new FileStream(inputPath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+            if (!System.IO.File.Exists(inputPath))
             {
-                _pdfAnonymizationService.AnonymizePdf(inputPath, outputPath);
+                return NotFound("Makale dosyası mevcut değil.");
             }
 
+            // 📌 Aspose.PDF kullanarak anonimleştirme işlemi yap
+            _pdfAnonymizationService.AnonymizePdf(inputPath, outputPath);
+
+            // 📌 Anonimleştirildi olarak işaretle
             var yeniAnonimlestirme = new Anonimlestirme { MakaleId = id };
             _context.Anonimlestirmeler.Add(yeniAnonimlestirme);
             await _context.SaveChangesAsync();
@@ -120,6 +106,7 @@ namespace makalesistemi.Controllers
             ViewData["Message"] = "Makale başarıyla anonimleştirildi!";
             return RedirectToAction("Panel");
         }
+
 
         // 📌 Dosyanın kullanılabilir olup olmadığını kontrol eden metot
         private bool IsFileLocked(string filePath)
