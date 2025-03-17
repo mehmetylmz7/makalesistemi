@@ -53,7 +53,6 @@ namespace makalesistemi.Controllers
                 return NotFound("Makale dosyası mevcut değil.");
             }
 
-            // 📌 Dosyanın kilitli olup olmadığını kontrol et
             if (IsFileLocked(filePath))
             {
                 return BadRequest("Makale dosyası şu anda başka bir işlem tarafından kullanılıyor. Lütfen tekrar deneyin.");
@@ -72,19 +71,16 @@ namespace makalesistemi.Controllers
                 return NotFound("Makale bulunamadı.");
             }
 
-            var anonimKayit = await _context.Anonimlestirmeler.FirstOrDefaultAsync(a => a.MakaleId == id);
-            if (anonimKayit != null)
+            if (_context.Anonimlestirmeler.Any(a => a.MakaleId == id))
             {
                 ViewData["Message"] = "Bu makale zaten anonimleştirildi!";
                 return RedirectToAction("Panel");
             }
 
-            // 📌 Dosya yollarını oluştur
             string inputPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu.TrimStart('/'));
             string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "makaleler");
             string outputPath = Path.Combine(outputDir, Path.GetFileName(makale.DosyaYolu));
 
-            // 📌 Çıkış dizini yoksa oluştur
             if (!Directory.Exists(outputDir))
             {
                 Directory.CreateDirectory(outputDir);
@@ -95,10 +91,16 @@ namespace makalesistemi.Controllers
                 return NotFound("Makale dosyası mevcut değil.");
             }
 
-            // 📌 Aspose.PDF kullanarak anonimleştirme işlemi yap
-            _pdfAnonymizationService.AnonymizePdf(inputPath, outputPath);
+            try
+            {
+                _pdfAnonymizationService.AnonymizePdf(inputPath, outputPath);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Anonimleştirme hatası: {ex.Message}");
+                throw;
+            }
 
-            // 📌 Anonimleştirildi olarak işaretle
             var yeniAnonimlestirme = new Anonimlestirme { MakaleId = id };
             _context.Anonimlestirmeler.Add(yeniAnonimlestirme);
             await _context.SaveChangesAsync();
@@ -107,25 +109,21 @@ namespace makalesistemi.Controllers
             return RedirectToAction("Panel");
         }
 
-
-        // 📌 Dosyanın kullanılabilir olup olmadığını kontrol eden metot
         private bool IsFileLocked(string filePath)
         {
             try
             {
                 using (FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    return false; // Dosya kullanılabilir
+                    return false;
                 }
             }
             catch (IOException)
             {
-                return true; // Dosya kilitlenmiş
+                return true;
             }
         }
 
-
-        // 📌 Hakeme Yönlendirme
         [HttpPost]
         public async Task<IActionResult> HakemeYolla(int makaleId, int hakemId)
         {
@@ -135,8 +133,7 @@ namespace makalesistemi.Controllers
                 return NotFound();
             }
 
-            bool anonimMi = _context.Anonimlestirmeler.Any(a => a.MakaleId == makaleId);
-            if (!anonimMi)
+            if (!_context.Anonimlestirmeler.Any(a => a.MakaleId == makaleId))
             {
                 ViewData["Message"] = "Bu makale henüz anonimleştirilmedi!";
                 return RedirectToAction("Panel");
