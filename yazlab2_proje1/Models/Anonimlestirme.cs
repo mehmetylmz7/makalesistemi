@@ -11,6 +11,9 @@ namespace makalesistemi.Models
         [Required]
         public int MakaleId { get; set; }
 
+        [Required]
+        public string DosyaYolu { get; set; }
+
         [ForeignKey("MakaleId")]
         public Makale Makale { get; set; }
     }

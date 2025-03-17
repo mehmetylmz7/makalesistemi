@@ -1,0 +1,26 @@
+﻿@model List<makalesistemi.Models.Hakem>
+
+@{
+    ViewData["Title"] = "Hakem Girişi";
+}
+
+<h2 class="text-center">🔑 Hakem Girişi</h2>
+
+@if (ViewData["Message"] != null)
+{
+    <div class="alert alert-info text-center">
+        @ViewData["Message"]
+    </div>
+}
+
+<form asp-controller="Hakem" asp-action="Giris" method="post" class="text-center">
+    <label for="hakemId" class="form-label">Lütfen hakeminizi seçin:</label>
+    <select name="hakemId" class="form-select w-auto mx-auto" required>
+        <option value="">Seçiniz...</option>
+        @foreach (var hakem in Model)
+        {
+            <option value="@hakem.Id">@hakem.Isim</option>
+        }
+    </select>
+    <button type="submit" class="btn btn-primary mt-3">🔓 Giriş Yap</button>
+</form>
