@@ -21,7 +21,8 @@ namespace makalesistemi.Models
         public DbSet<Hakem> Hakemler { get; set; }
         public DbSet<Log> Loglar { get; set; }
         public DbSet<Anonimlestirme> Anonimlestirmeler { get; set; }
-        public DbSet<Degerlendirme> Degerlendirmeler { get; set; }
+        
+        // public DbSet<Degerlendirme> Degerlendirmeler { get; set; }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -56,13 +57,13 @@ namespace makalesistemi.Models
                 .WithMany(m => m.Anonimlestirmeler)
                 .HasForeignKey(a => a.MakaleId)
                 .OnDelete(DeleteBehavior.Cascade);
-
+/*
             // Makale - Değerlendirme ilişkisi (1-N)
             modelBuilder.Entity<Degerlendirme>()
                 .HasOne(d => d.Makale)
                 .WithMany(m => m.Degerlendirmeler)
                 .HasForeignKey(d => d.MakaleId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .OnDelete(DeleteBehavior.Cascade); */
 
             // Hakem - Değerlendirme ilişkisi (1-N)
             modelBuilder.Entity<Degerlendirme>()

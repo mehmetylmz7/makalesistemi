@@ -14,6 +14,7 @@ namespace makalesistemi.Models
         Onaylandı,
         Reddedildi
     }
+
     public class Makale
     {
         [Key]
@@ -25,7 +26,9 @@ namespace makalesistemi.Models
         [Required]
         public string DosyaYolu { get; set; }
 
-        public int? HakemId { get; set; }
+        public int? HakemId { get; set; }  // Atanan hakem
+
+        public string HakemDegerlendirmesi { get; set; }  // 🔹 Hakem değerlendirmesi buraya eklendi
 
         [ForeignKey("YazarId")]
         public Yazar Yazar { get; set; }
@@ -35,6 +38,5 @@ namespace makalesistemi.Models
 
         public List<Log> Loglar { get; set; } = new();
         public List<Anonimlestirme> Anonimlestirmeler { get; set; } = new();
-        public List<Degerlendirme> Degerlendirmeler { get; set; } = new();
     }
 }

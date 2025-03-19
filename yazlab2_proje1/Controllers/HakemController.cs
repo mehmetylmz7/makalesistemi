@@ -5,97 +5,58 @@ using System.Linq;
 using System.Threading.Tasks;
 using makalesistemi.Models;
 using makalesistemi.Services;
+using System.IO;
 
 namespace makalesistemi.Controllers
 {
     public class HakemController : Controller
     {
         private readonly Context _context;
-        private readonly PdfService _pdfService; // 🔹 PdfService ekle
+        private readonly PdfService _pdfService;
 
         public HakemController(Context context, PdfService pdfService)
         {
             _context = context;
-            _pdfService = pdfService; // 🔹 Bağımlılığı Constructor'dan al
+            _pdfService = pdfService;
         }
 
         [HttpPost]
         public IActionResult Degerlendir(int makaleId, string degerlendirme)
         {
-            // HakemId oturumdan alınır
             int? hakemId = HttpContext.Session.GetInt32("HakemID");
             if (hakemId == null)
             {
                 return RedirectToAction("Login", "Hakem");
             }
 
-            // Değerlendirme var mı diye kontrol et
-            var mevcutDegerlendirme = _context.Degerlendirmeler
-                .FirstOrDefault(d => d.MakaleId == makaleId && d.HakemId == hakemId);
-
-            if (mevcutDegerlendirme != null)
+            var makale = _context.Makaleler.Find(makaleId);
+            if (makale == null || makale.HakemId != hakemId)
             {
-                // Değerlendirme varsa, güncelle
-                mevcutDegerlendirme.HakemDegerlendirmesi = degerlendirme;
-                _context.Degerlendirmeler.Update(mevcutDegerlendirme);
-            }
-            else
-            {
-                // Değerlendirme yoksa, yeni ekle
-                var yeniDegerlendirme = new Degerlendirme
-                {
-                    MakaleId = makaleId,
-                    HakemId = hakemId.Value,
-                    HakemDegerlendirmesi = degerlendirme
-                };
-                _context.Degerlendirmeler.Add(yeniDegerlendirme);
+                return NotFound();
             }
 
-            // Veritabanında değişiklikleri kaydet
+            makale.HakemDegerlendirmesi = degerlendirme;
+            _context.Makaleler.Update(makale);
             _context.SaveChanges();
 
-            // Hakem paneline yönlendir
             return RedirectToAction("Panel", "Hakem");
         }
 
         [HttpPost]
-        public IActionResult DegerlendirmeGuncelle(int degerlendirmeId, string guncelDegerlendirme)
+        public IActionResult DegerlendirmeSil(int makaleId)
         {
-            // Veritabanında ilgili değerlendirmeyi bul
-            var degerlendirme = _context.Degerlendirmeler.Find(degerlendirmeId);
-            if (degerlendirme == null)
+            var makale = _context.Makaleler.Find(makaleId);
+            if (makale == null)
             {
-                return NotFound(); // Değerlendirme bulunamazsa hata döner
+                return NotFound();
             }
 
-            // Değerlendirmeyi güncelle
-            degerlendirme.HakemDegerlendirmesi = guncelDegerlendirme;
-            _context.SaveChanges(); // Değişiklikleri kaydet
+            makale.HakemDegerlendirmesi = null;
+            _context.SaveChanges();
 
-            return RedirectToAction("Panel", "Hakem"); // Hakem paneline yönlendir
+            return RedirectToAction("Panel", "Hakem");
         }
 
-        [HttpPost]
-        public IActionResult DegerlendirmeSil(int degerlendirmeId)
-        {
-            // Silinecek değerlendirmeyi veritabanında bul
-            var degerlendirme = _context.Degerlendirmeler.Find(degerlendirmeId);
-            if (degerlendirme == null)
-            {
-                return NotFound(); // Değerlendirme bulunamazsa hata döner
-            }
-
-            // Değerlendirmeyi sil
-            _context.Degerlendirmeler.Remove(degerlendirme);
-            _context.SaveChanges(); // Değişiklikleri kaydet
-
-            return RedirectToAction("Panel", "Hakem"); // Hakem paneline yönlendir
-        }
-
-
-
-
-        // 1️⃣ Hakem Giriş Ekranı (Hakemlerin Listesi)
         [HttpGet]
         public async Task<IActionResult> Login()
         {
@@ -103,7 +64,6 @@ namespace makalesistemi.Controllers
             return View(hakemler);
         }
 
-        // 2️⃣ Seçilen Hakemin Giriş Yapması
         [HttpPost]
         public IActionResult Giris(int hakemId)
         {
@@ -111,11 +71,9 @@ namespace makalesistemi.Controllers
             return RedirectToAction("Panel");
         }
 
-        // 3️⃣ Hakem Paneli - Kendisine Atanan Makaleleri Görüntüleme
         public async Task<IActionResult> Panel()
         {
             int? hakemId = HttpContext.Session.GetInt32("HakemID");
-
             if (hakemId == null)
             {
                 return RedirectToAction("Login");
@@ -128,7 +86,6 @@ namespace makalesistemi.Controllers
             return View(makaleler);
         }
 
-        // 4️⃣ Makale Görüntüleme
         public async Task<IActionResult> Goruntule(int id)
         {
             var makale = await _context.Makaleler.FindAsync(id);
@@ -138,7 +95,6 @@ namespace makalesistemi.Controllers
             }
 
             string filePath = Path.Combine("wwwroot", makale.DosyaYolu.TrimStart('/'));
-
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("Makale dosyası mevcut değil.");
@@ -148,14 +104,10 @@ namespace makalesistemi.Controllers
             return File(fileBytes, "application/pdf", "makale.pdf");
         }
 
-        // 5️⃣ Hakemin Oturumu Kapatması
         public IActionResult Cikis()
         {
             HttpContext.Session.Remove("HakemID");
             return RedirectToAction("Login");
         }
-
-      
-
     }
 }

@@ -34,15 +34,13 @@ else
         <tbody>
             @foreach (var makale in Model)
             {
-                var degerlendirme = makale.Degerlendirmeler?.FirstOrDefault(d => d.HakemId == hakemId);
-
                 <tr>
                     <td>@makale.Id</td>
                     <td>
                         <a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a>
                     </td>
                     <td>
-                        @if (degerlendirme != null)
+                        @if (!string.IsNullOrEmpty(makale.HakemDegerlendirmesi))
                         {
                             <div class="alert alert-success text-center">
                                 📌 Değerlendirme Yapıldı
@@ -53,7 +51,7 @@ else
                             </button>
 
                             <form asp-controller="Hakem" asp-action="DegerlendirmeSil" method="post" class="d-inline">
-                                <input type="hidden" name="degerlendirmeId" value="@degerlendirme.Id" />
+                                <input type="hidden" name="makaleId" value="@makale.Id" />
                                 <button type="submit" class="btn btn-danger">🗑️ Sil</button>
                             </form>
 
@@ -67,11 +65,11 @@ else
                                         </div>
                                         <div class="modal-body">
                                             <form asp-controller="Hakem" asp-action="DegerlendirmeGuncelle" method="post">
-                                                <input type="hidden" name="degerlendirmeId" value="@degerlendirme.Id" />
+                                                <input type="hidden" name="makaleId" value="@makale.Id" />
 
                                                 <div class="mb-3">
                                                     <label class="form-label">Yeni Değerlendirme:</label>
-                                                    <textarea name="guncelDegerlendirme" class="form-control" rows="4" required>@degerlendirme.HakemDegerlendirmesi</textarea>
+                                                    <textarea name="guncelDegerlendirme" class="form-control" rows="4" required>@makale.HakemDegerlendirmesi</textarea>
                                                 </div>
 
                                                 <div class="modal-footer">
