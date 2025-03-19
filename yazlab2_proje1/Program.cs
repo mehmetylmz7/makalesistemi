@@ -1,5 +1,6 @@
 using makalesistemi;
 using makalesistemi.Models;
+using makalesistemi.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +8,9 @@ var builder = WebApplication.CreateBuilder(args);
 // ? MVC ve API Controller'larý ekleyelim
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
+
+builder.Services.AddScoped<PdfService>(); // ?? PdfService'i DI Konteynerine Ekle
+
 
 // ? DbContext'i DI Konteynerine ekleyelim
 builder.Services.AddDbContext<Context>(options =>
