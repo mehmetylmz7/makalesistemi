@@ -5,18 +5,21 @@ using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ? MVC ve API Controller'larý ekleyelim
+// MVC ve API Controller'larý ekleyelim
 builder.Services.AddControllersWithViews();
 builder.Services.AddControllers();
 
-builder.Services.AddScoped<PdfService>(); // ?? PdfService'i DI Konteynerine Ekle
+// PdfService'i DI Konteynerine ekleyelim
+builder.Services.AddScoped<PdfService>();
 
+// AesEncryptionService'i DI Konteynerine ekleyelim (Bu satýrý ekleyin)
+builder.Services.AddScoped<AesEncryptionService>();  // AesEncryptionService'i DI konteynerine ekliyoruz
 
-// ? DbContext'i DI Konteynerine ekleyelim
+// DbContext'i DI Konteynerine ekleyelim
 builder.Services.AddDbContext<Context>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// ? Session'ý aktif hale getir
+// Session'ý aktif hale getirelim
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30); // 30 dakika aktif kalýr
@@ -24,7 +27,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-// ? CORS politikasýný ekleyelim (Geliþtirme ve Prod ayrýmý yapýldý)
+// CORS politikasýný ekleyelim (Geliþtirme ve Prod ayrýmý yapýldý)
 builder.Services.AddCors(options =>
 {
     if (builder.Environment.IsDevelopment())
@@ -47,12 +50,12 @@ builder.Services.AddCors(options =>
     }
 });
 
-// ? Servisleri Dependency Injection Container'a ekle
+// Servisleri Dependency Injection Container'a ekle
 builder.Services.AddScoped<PdfAnonymizationService>(); // Eðer PDF servisiniz varsa DI ile ekleyin
 
 var app = builder.Build();
 
-// ? Hata yönetimi ve güvenlik ayarlarý
+// Hata yönetimi ve güvenlik ayarlarý
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
@@ -63,15 +66,15 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
 
-// ? CORS politikasýný burada kullan (UseRouting'ten sonra, UseAuthorization'dan önce)
+// CORS politikasýný burada kullan (UseRouting'ten sonra, UseAuthorization'dan önce)
 app.UseCors(builder.Environment.IsDevelopment() ? "AllowAll" : "Restricted");
 
-// ? Session middleware'ini ekle
+// Session middleware'ini ekle
 app.UseSession();
 
 app.UseAuthorization();
 
-// ? Hem API hem de MVC yönlendirmeleri için
+// Hem API hem de MVC yönlendirmeleri için
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
