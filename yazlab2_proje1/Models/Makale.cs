@@ -28,7 +28,7 @@ namespace makalesistemi.Models
 
         public int? HakemId { get; set; }  // Atanan hakem
 
-        public string HakemDegerlendirmesi { get; set; }  // 🔹 Hakem değerlendirmesi buraya eklendi
+        public string? HakemDegerlendirmesi { get; set; }  // 🔹 Hakem değerlendirmesi buraya eklendi
 
         [ForeignKey("YazarId")]
         public Yazar Yazar { get; set; }
