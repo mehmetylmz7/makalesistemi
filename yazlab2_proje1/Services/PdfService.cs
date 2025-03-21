@@ -1,5 +1,8 @@
 ﻿using Aspose.Pdf;
 using Aspose.Pdf.Text;
+using iText.Kernel.Pdf;
+using iText.Layout.Element;
+using iText.Layout.Properties;
 using System;
 using System.IO;
 
@@ -37,6 +40,42 @@ namespace makalesistemi.Services
 
                 // 🔹 Güncellenmiş PDF dosyasını kaydet
                 string yeniDosyaAdi = $"degerlendirilmis_{Path.GetFileName(mevcutPdfYolu)}";
+                string yeniDosyaYolu = Path.Combine("wwwroot/pdfs", yeniDosyaAdi);
+
+                pdfDocument.Save(yeniDosyaYolu);
+
+                return $"/pdfs/{yeniDosyaAdi}"; // 🔹 Yeni dosya yolunu döndür
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("PDF düzenlenirken bir hata oluştu.", ex);
+            }
+        }
+        // Yeni metot: StringEkle
+        public string StringEkle(string mevcutPdfYolu, string eklenecekMetin)
+        {
+            try
+            {
+                // 🔹 Dosya yolunu oluştur
+                string tamDosyaYolu = Path.Combine("wwwroot", mevcutPdfYolu.TrimStart('/'));
+
+                Console.WriteLine($"Tam Dosya Yolu: {tamDosyaYolu}");
+                if (!File.Exists(tamDosyaYolu))
+                {
+                    throw new FileNotFoundException("PDF dosyası bulunamadı.", tamDosyaYolu);
+                }
+
+                // 🔹 Mevcut PDF dosyasını yükle
+                Document pdfDocument = new Document(tamDosyaYolu);
+
+                // 🔹 Yeni bir sayfa ekleyerek metni ekle
+                Page yeniSayfa = pdfDocument.Pages.Add();
+                TextFragment metin = new TextFragment(eklenecekMetin);
+                metin.TextState.FontSize = 12;
+                yeniSayfa.Paragraphs.Add(metin);
+
+                // 🔹 Güncellenmiş PDF dosyasını kaydet
+                string yeniDosyaAdi = $"guncellenmis_{Path.GetFileName(mevcutPdfYolu)}";
                 string yeniDosyaYolu = Path.Combine("wwwroot/pdfs", yeniDosyaAdi);
 
                 pdfDocument.Save(yeniDosyaYolu);

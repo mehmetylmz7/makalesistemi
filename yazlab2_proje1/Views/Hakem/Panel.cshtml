@@ -124,6 +124,11 @@ else
                                 <input type="hidden" name="makaleId" value="@makale.Id" />
                                 <button type="submit" class="btn btn-danger">🗑️ Sil</button>
                             </form>
+                            <!-- Editöre İlet Butonu -->
+                            <form asp-controller="Hakem" asp-action="EditoreIlet" method="post" class="d-inline">
+                                <input type="hidden" name="makaleId" value="@makale.Id" />
+                                <button type="submit" class="btn btn-info">📤 Editöre İlet</button>
+                            </form>
 
                             <!-- Güncelleme Modal -->
                             <div class="modal fade" id="guncelleModal_@makale.Id" tabindex="-1" aria-labelledby="modalLabel_@makale.Id" aria-hidden="true">

@@ -32,6 +32,9 @@ namespace makalesistemi.Models
 
         public string? AnonimDosyaYolu { get; set; }  // 🔹 Anonimleştirilmiş dosyanın yolu
 
+        public string? DegerlendirmeDosyaYolu { get; set; }  // 🔹 Değerlendirme dosyasının yolu
+
+
         [ForeignKey("YazarId")]
         public Yazar Yazar { get; set; }
 

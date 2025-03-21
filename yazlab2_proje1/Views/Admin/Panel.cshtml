@@ -1,10 +1,11 @@
-﻿@model Tuple<List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Hakem>>
+﻿@model Tuple<List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Makale>, List<makalesistemi.Models.Hakem>>
 
 @{
     ViewData["Title"] = "Yönetici Paneli";
     var anonimMakaleListesi = Model.Item1; // Anonimleştirilmiş makaleler
     var anonimDegilMakaleListesi = Model.Item2; // Anonimleştirilmemiş makaleler
-    var hakemListesi = Model.Item3; // Hakemler
+    var editoreIletilenMakaleListesi = Model.Item3; // Editöre iletilen makaleler
+    var hakemListesi = Model.Item4; // Hakemler
 }
 
 <h2 class="text-center">📌 Yönetici Paneli</h2>
@@ -73,6 +74,30 @@
 
                         <button type="submit" class="btn btn-success">📤 Hakeme Yönlendir</button>
                     </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- 🟡 Editöre İletilen Makaleler -->
+<h3 class="mt-4">🟡 Editöre İletilen Makaleler</h3>
+<table class="table table-bordered">
+    <thead class="table-warning">
+        <tr>
+            <th>ID</th>
+            <th>Dosya Yolu</th>
+            <th>İşlemler</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var makale in editoreIletilenMakaleListesi)
+        {
+            <tr>
+                <td>@makale.Id</td>
+                <td><a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
+                <td>
+                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
                 </td>
             </tr>
         }

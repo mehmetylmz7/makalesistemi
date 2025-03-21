@@ -32,9 +32,13 @@ namespace makalesistemi.Controllers
                 .Where(m => string.IsNullOrEmpty(m.AnonimDosyaYolu)) // Anonim dosya yolu boş olanlar
                 .ToListAsync();
 
+           var editoreIletilenMakaleListesi = await _context.Makaleler
+                .Where(m => m.Durum == ArticleStatus.EditoreIletildi)
+                 .ToListAsync();
+
             var hakemListesi = await _context.Hakemler.ToListAsync();
 
-            return View(Tuple.Create(anonimMakaleListesi, anonimDegilMakaleListesi, hakemListesi));
+            return View(Tuple.Create(anonimMakaleListesi, anonimDegilMakaleListesi,editoreIletilenMakaleListesi, hakemListesi));
         }
 
 
