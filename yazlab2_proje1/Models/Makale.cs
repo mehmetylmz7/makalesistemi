@@ -8,11 +8,11 @@ namespace makalesistemi.Models
 {
     public enum ArticleStatus
     {
-        Beklemede,
-        İnceleniyor,
-        RevizeEdildi,
-        Onaylandı,
-        Reddedildi
+        Yüklendi,          // Makale sisteme yüklendi
+        Anonimlesti,       // Makale anonimleştirildi
+        HakemeIletildi,    // Hakeme gönderildi
+        EditoreIletildi,   // Editöre gönderildi
+        YazaraIletildi     // Yazara geri gönderildi
     }
 
     public class Makale
@@ -37,6 +37,8 @@ namespace makalesistemi.Models
 
         [ForeignKey("HakemId")]
         public Hakem Hakem { get; set; }
+
+        public ArticleStatus Durum { get; set; } = ArticleStatus.Yüklendi;
 
         public List<Log> Loglar { get; set; } = new();
         public List<Anonimlestirme> Anonimlestirmeler { get; set; } = new();

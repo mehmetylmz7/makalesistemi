@@ -119,6 +119,7 @@ namespace makalesistemi.Controllers
 
             // 🔹 Makale tablosunda AnonimDosyaYolu'nu güncelle
             makale.AnonimDosyaYolu = "/makaleler/" + Path.GetFileName(outputPath);
+            makale.Durum = ArticleStatus.Anonimlesti;
             _context.Makaleler.Update(makale);
 
             await _context.SaveChangesAsync();
@@ -159,6 +160,7 @@ namespace makalesistemi.Controllers
             } */
 
             makale.HakemId = hakemId;
+            makale.Durum=ArticleStatus.HakemeIletildi;
             _context.Makaleler.Update(makale);
             await _context.SaveChangesAsync();
 
