@@ -25,11 +25,11 @@ namespace makalesistemi.Controllers
         public async Task<IActionResult> Panel()
         {
             var anonimMakaleListesi = await _context.Makaleler
-                .Where(m => _context.Anonimlestirmeler.Any(a => a.MakaleId == m.Id))
+                .Where(m => !string.IsNullOrEmpty(m.AnonimDosyaYolu)) // Anonim dosya yolu dolu olanlar
                 .ToListAsync();
 
             var anonimDegilMakaleListesi = await _context.Makaleler
-                .Where(m => !_context.Anonimlestirmeler.Any(a => a.MakaleId == m.Id))
+                .Where(m => string.IsNullOrEmpty(m.AnonimDosyaYolu)) // Anonim dosya yolu boş olanlar
                 .ToListAsync();
 
             var hakemListesi = await _context.Hakemler.ToListAsync();
@@ -37,16 +37,27 @@ namespace makalesistemi.Controllers
             return View(Tuple.Create(anonimMakaleListesi, anonimDegilMakaleListesi, hakemListesi));
         }
 
+
         [HttpGet]
         public async Task<IActionResult> Goruntule(int id)
         {
             var makale = await _context.Makaleler.FindAsync(id);
-            if (makale == null || string.IsNullOrEmpty(makale.DosyaYolu))
+            if (makale == null)
             {
-                return NotFound("Makale bulunamadı veya dosya yolu mevcut değil.");
+                return NotFound("Makale bulunamadı.");
             }
 
-            string filePath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu.TrimStart('/'));
+            // Öncelikli olarak AnonimDosyaYolu'nu kullan, yoksa DosyaYolu'nu kullan
+            string dosyaYolu = !string.IsNullOrEmpty(makale.AnonimDosyaYolu)
+                ? makale.AnonimDosyaYolu
+                : makale.DosyaYolu;
+
+            if (string.IsNullOrEmpty(dosyaYolu))
+            {
+                return NotFound("Makale için geçerli bir dosya yolu bulunamadı.");
+            }
+
+            string filePath = Path.Combine(_hostEnvironment.WebRootPath, dosyaYolu.TrimStart('/'));
 
             if (!System.IO.File.Exists(filePath))
             {
@@ -62,6 +73,7 @@ namespace makalesistemi.Controllers
             return File(fileBytes, "application/pdf", "makale.pdf");
         }
 
+
         [HttpGet]
         public async Task<IActionResult> Anonimlestir(int id)
         {
@@ -71,7 +83,7 @@ namespace makalesistemi.Controllers
                 return NotFound("Makale bulunamadı.");
             }
 
-            if (_context.Anonimlestirmeler.Any(a => a.MakaleId == id))
+            if (!string.IsNullOrEmpty(makale.AnonimDosyaYolu))
             {
                 ViewData["Message"] = "Bu makale zaten anonimleştirildi!";
                 return RedirectToAction("Panel");
@@ -79,7 +91,7 @@ namespace makalesistemi.Controllers
 
             string inputPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu.TrimStart('/'));
             string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "makaleler");
-            string outputPath = Path.Combine(outputDir, Path.GetFileName(makale.DosyaYolu));
+            string outputPath = Path.Combine(outputDir, Path.GetFileNameWithoutExtension(makale.DosyaYolu) + "_anonim.pdf");
 
             if (!Directory.Exists(outputDir))
             {
@@ -101,13 +113,20 @@ namespace makalesistemi.Controllers
                 throw;
             }
 
-            var yeniAnonimlestirme = new Anonimlestirme { MakaleId = id };
-            _context.Anonimlestirmeler.Add(yeniAnonimlestirme);
+            // Anonimleştirme kaydı ekleme
+           // var yeniAnonimlestirme = new Anonimlestirme { MakaleId = id };
+           // _context.Anonimlestirmeler.Add(yeniAnonimlestirme);
+
+            // 🔹 Makale tablosunda AnonimDosyaYolu'nu güncelle
+            makale.AnonimDosyaYolu = "/makaleler/" + Path.GetFileName(outputPath);
+            _context.Makaleler.Update(makale);
+
             await _context.SaveChangesAsync();
 
             ViewData["Message"] = "Makale başarıyla anonimleştirildi!";
             return RedirectToAction("Panel");
         }
+
 
         private bool IsFileLocked(string filePath)
         {
@@ -132,12 +151,12 @@ namespace makalesistemi.Controllers
             {
                 return NotFound();
             }
-
+            /* 
             if (!_context.Anonimlestirmeler.Any(a => a.MakaleId == makaleId))
             {
                 ViewData["Message"] = "Bu makale henüz anonimleştirilmedi!";
                 return RedirectToAction("Panel");
-            }
+            } */
 
             makale.HakemId = hakemId;
             _context.Makaleler.Update(makale);

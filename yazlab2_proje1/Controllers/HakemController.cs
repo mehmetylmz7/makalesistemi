@@ -114,12 +114,12 @@ namespace makalesistemi.Controllers
         public async Task<IActionResult> Goruntule(int id)
         {
             var makale = await _context.Makaleler.FindAsync(id);
-            if (makale == null || string.IsNullOrEmpty(makale.DosyaYolu))
+            if (makale == null || string.IsNullOrEmpty(makale.AnonimDosyaYolu))
             {
                 return NotFound("Makale bulunamadı veya dosya yolu mevcut değil.");
             }
 
-            string filePath = Path.Combine("wwwroot", makale.DosyaYolu.TrimStart('/'));
+            string filePath = Path.Combine("wwwroot", makale.AnonimDosyaYolu.TrimStart('/'));
             if (!System.IO.File.Exists(filePath))
             {
                 return NotFound("Makale dosyası mevcut değil.");
