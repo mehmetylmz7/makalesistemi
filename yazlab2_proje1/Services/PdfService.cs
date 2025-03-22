@@ -1,93 +1,108 @@
 ﻿using Aspose.Pdf;
 using Aspose.Pdf.Text;
-using iText.Kernel.Pdf;
-using iText.Layout.Element;
-using iText.Layout.Properties;
 using System;
 using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using makalesistemi.Models;
+using iText.Kernel.Pdf;
+using iText.Kernel.Utils;
+using System.IO;
+using iText.Layout.Element;
+using ITextDocument = iText.Layout.Document; // 📌 iText Document sınıfını farklı adla tanımla
+using ITextParagraph = iText.Layout.Element.Paragraph; // 📌 iText Paragraph için özel isim kullan
 
 namespace makalesistemi.Services
 {
     public class PdfService
     {
+        private readonly IWebHostEnvironment _hostEnvironment;
+
+        public PdfService(IWebHostEnvironment hostEnvironment)
+        {
+            _hostEnvironment = hostEnvironment;
+        }
+
         public string DegerlendirmeEkle(string mevcutPdfYolu, string hakemAdi, string degerlendirme)
         {
             try
             {
-                // 🔹 Dosya yolunu Goruntule metodundaki gibi oluştur
                 string tamDosyaYolu = Path.Combine("wwwroot", mevcutPdfYolu.TrimStart('/'));
 
-                Console.WriteLine($"Tam Dosya Yolu: {tamDosyaYolu}");
                 if (!File.Exists(tamDosyaYolu))
                 {
                     throw new FileNotFoundException("PDF dosyası bulunamadı.", tamDosyaYolu);
                 }
 
-                // 🔹 Mevcut PDF dosyasını yükle
-                Document pdfDocument = new Document(tamDosyaYolu);
-
-                // 🔹 Yeni bir sayfa ekleyerek hakem değerlendirmesini ekle
+                Aspose.Pdf.Document pdfDocument = new Aspose.Pdf.Document(tamDosyaYolu);
                 Page yeniSayfa = pdfDocument.Pages.Add();
-                TextFragment baslik = new TextFragment($"📌 Hakem: {hakemAdi} - Değerlendirme");
-                baslik.TextState.FontSize = 14;
-                baslik.TextState.FontStyle = FontStyles.Bold;
-                baslik.TextState.ForegroundColor = Aspose.Pdf.Color.FromRgb(System.Drawing.Color.DarkBlue);
+
+                TextFragment baslik = new TextFragment($"📌 Hakem: {hakemAdi} - Değerlendirme")
+                {
+                    TextState = { FontSize = 14, FontStyle = FontStyles.Bold, ForegroundColor = Aspose.Pdf.Color.DarkBlue }
+                };
                 yeniSayfa.Paragraphs.Add(baslik);
 
-                TextFragment icerik = new TextFragment(degerlendirme);
-                icerik.TextState.FontSize = 12;
+                TextFragment icerik = new TextFragment(degerlendirme) { TextState = { FontSize = 12 } };
                 yeniSayfa.Paragraphs.Add(icerik);
 
-                // 🔹 Güncellenmiş PDF dosyasını kaydet
                 string yeniDosyaAdi = $"degerlendirilmis_{Path.GetFileName(mevcutPdfYolu)}";
                 string yeniDosyaYolu = Path.Combine("wwwroot/pdfs", yeniDosyaAdi);
-
                 pdfDocument.Save(yeniDosyaYolu);
 
-                return $"/pdfs/{yeniDosyaAdi}"; // 🔹 Yeni dosya yolunu döndür
+                return $"/pdfs/{yeniDosyaAdi}";
             }
             catch (Exception ex)
             {
                 throw new Exception("PDF düzenlenirken bir hata oluştu.", ex);
             }
         }
-        // Yeni metot: StringEkle
-        public string StringEkle(string mevcutPdfYolu, string eklenecekMetin)
+
+        public string BirlesikPdfOlustur(string makaleDosyaYolu, string degerlendirme, string kayitDizini)
         {
             try
             {
-                // 🔹 Dosya yolunu oluştur
-                string tamDosyaYolu = Path.Combine("wwwroot", mevcutPdfYolu.TrimStart('/'));
+                // 1️⃣ Mevcut makale PDF yolunu hazırla
+                string tamMakaleYolu = Path.Combine("wwwroot", makaleDosyaYolu.TrimStart('/'));
 
-                Console.WriteLine($"Tam Dosya Yolu: {tamDosyaYolu}");
-                if (!File.Exists(tamDosyaYolu))
+                if (!File.Exists(tamMakaleYolu))
                 {
-                    throw new FileNotFoundException("PDF dosyası bulunamadı.", tamDosyaYolu);
+                    throw new FileNotFoundException("Makale PDF dosyası bulunamadı.", tamMakaleYolu);
                 }
 
-                // 🔹 Mevcut PDF dosyasını yükle
-                Document pdfDocument = new Document(tamDosyaYolu);
+                // 2️⃣ Hakem değerlendirmesini içeren geçici bir PDF oluştur
+                string geciciDegerlendirmePdf = Path.Combine(kayitDizini, $"degerlendirme_{Guid.NewGuid()}.pdf");
 
-                // 🔹 Yeni bir sayfa ekleyerek metni ekle
-                Page yeniSayfa = pdfDocument.Pages.Add();
-                TextFragment metin = new TextFragment(eklenecekMetin);
-                metin.TextState.FontSize = 12;
-                yeniSayfa.Paragraphs.Add(metin);
+                using (PdfWriter writer = new PdfWriter(geciciDegerlendirmePdf))
+                using (PdfDocument pdfDocument = new PdfDocument(writer))
+                using (ITextDocument document = new ITextDocument(pdfDocument)) // 📌 iText Document
+                {
+                    document.Add(new ITextParagraph("📌 Hakem Değerlendirmesi").SetFontSize(14));
+                    document.Add(new ITextParagraph(degerlendirme).SetFontSize(12));
+                }
 
-                // 🔹 Güncellenmiş PDF dosyasını kaydet
-                string yeniDosyaAdi = $"guncellenmis_{Path.GetFileName(mevcutPdfYolu)}";
-                string yeniDosyaYolu = Path.Combine("wwwroot/pdfs", yeniDosyaAdi);
+                // 3️⃣ Birleştirilmiş PDF için yeni dosya adı oluştur
+                string birlesikDosyaAdi = $"birlesik_{Path.GetFileName(makaleDosyaYolu)}";
+                string birlesikDosyaYolu = Path.Combine(kayitDizini, birlesikDosyaAdi);
 
-                pdfDocument.Save(yeniDosyaYolu);
+                // 4️⃣ PDF'leri birleştir
+                using (PdfDocument makalePdf = new PdfDocument(new PdfReader(tamMakaleYolu)))
+                using (PdfDocument degerlendirmePdf = new PdfDocument(new PdfReader(geciciDegerlendirmePdf)))
+                using (PdfDocument birlesikPdf = new PdfDocument(new PdfWriter(birlesikDosyaYolu)))
+                {
+                    PdfMerger merger = new PdfMerger(birlesikPdf);
+                    merger.Merge(makalePdf, 1, makalePdf.GetNumberOfPages());
+                    merger.Merge(degerlendirmePdf, 1, degerlendirmePdf.GetNumberOfPages());
+                }
 
-                return $"/pdfs/{yeniDosyaAdi}"; // 🔹 Yeni dosya yolunu döndür
+                // 5️⃣ Geçici dosyayı temizle
+                File.Delete(geciciDegerlendirmePdf);
+
+                return $"/makaleler/{birlesikDosyaAdi}"; // 🌍 Yeni dosya yolunu döndür
             }
             catch (Exception ex)
             {
-                throw new Exception("PDF düzenlenirken bir hata oluştu.", ex);
+                throw new Exception("PDF işlemi sırasında hata oluştu.", ex);
             }
         }
-
-
     }
 }

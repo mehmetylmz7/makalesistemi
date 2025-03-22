@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using makalesistemi.Models;
 using makalesistemi.Services;
 using System.IO;
+using Microsoft.Extensions.Hosting;
 
 
 namespace makalesistemi.Controllers
@@ -15,12 +16,14 @@ namespace makalesistemi.Controllers
         private readonly Context _context;
         private readonly PdfService _pdfService;
         private readonly AesEncryptionService _encryptionService;
+        private readonly IWebHostEnvironment _hostEnvironment;
 
-        public HakemController(Context context, PdfService pdfService, AesEncryptionService encryptionService)
+        public HakemController(Context context, PdfService pdfService, AesEncryptionService encryptionService , IWebHostEnvironment hostEnvironment)
         {
             _context = context;
             _pdfService = pdfService;
             _encryptionService = encryptionService;
+            _hostEnvironment = hostEnvironment;
         }
 
         [HttpPost]
@@ -121,11 +124,23 @@ namespace makalesistemi.Controllers
                 return NotFound();
             }
 
+            // 🔹 PDF birleştirme servisini çağır
+          //  PdfService pdfService = new PdfService();
+            string kayitDizini = Path.Combine("wwwroot", "makaleler");
+
+            // 📂 Dosya yolunu güncelle
+
+            string cozumluDegerlendirme = _encryptionService.Decrypt(makale.HakemDegerlendirmesi);
+            string yeniDosyaYolu = _pdfService.BirlesikPdfOlustur(makale.DosyaYolu, cozumluDegerlendirme , kayitDizini);
+            makale.DegerlendirmeDosyaYolu = yeniDosyaYolu;
+
             makale.Durum = ArticleStatus.EditoreIletildi;
             _context.SaveChanges();
 
             return RedirectToAction("Panel", "Hakem");
         }
+
+
 
 
         public async Task<IActionResult> Goruntule(int id)
