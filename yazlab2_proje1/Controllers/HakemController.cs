@@ -6,8 +6,7 @@ using System.Threading.Tasks;
 using makalesistemi.Models;
 using makalesistemi.Services;
 using System.IO;
-using PdfSharp.Pdf;
-using PdfSharp.Pdf.IO;
+
 
 namespace makalesistemi.Controllers
 {
@@ -122,35 +121,7 @@ namespace makalesistemi.Controllers
                 return NotFound();
             }
 
-            // Dosyayı okuyup yeni sayfa eklemek için Aspose.PDF kullanıyoruz
-            string originalFilePath = Path.Combine("wwwroot", makale.DosyaYolu.TrimStart('/'));
-            if (!System.IO.File.Exists(originalFilePath))
-            {
-                return NotFound("Makale dosyası mevcut değil.");
-            }
-
-            // PDF dosyasını açıyoruz
-            var document = new Aspose.Pdf.Document(originalFilePath);
-
-            // Yeni sayfa ekliyoruz
-            var newPage = document.Pages.Add();
-
-            // Hakem değerlendirmesini ekliyoruz
-            string hakemDegerlendirmesi = _encryptionService.Decrypt(makale.HakemDegerlendirmesi);  // Decrypt edilmiş metin
-            var textFragment = new Aspose.Pdf.Text.TextFragment(hakemDegerlendirmesi);
-            textFragment.Position = new Aspose.Pdf.Text.Position(100, 700); // Konumu belirleyin
-            newPage.Paragraphs.Add(textFragment);
-
-            // Yeni dosya yolu
-            string newFileName = $"{Guid.NewGuid()}.pdf";  // Yeni dosya ismi
-            string newFilePath = Path.Combine("wwwroot", "makaleler", newFileName);
-
-            // Yeni PDF dosyasını kaydediyoruz
-            document.Save(newFilePath);
-
-            // Makale nesnesindeki yeni dosya yolunu güncelliyoruz
-            makale.DegerlendirmeDosyaYolu = $"/makaleler/{newFileName}";
-            makale.Durum = ArticleStatus.EditoreIletildi; // Durum güncelleniyor
+            makale.Durum = ArticleStatus.EditoreIletildi;
             _context.SaveChanges();
 
             return RedirectToAction("Panel", "Hakem");
