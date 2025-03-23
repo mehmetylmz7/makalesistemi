@@ -1,0 +1,33 @@
+﻿@using makalesistemi.Models
+@model makalesistemi.Models.Makale
+
+@{
+    ViewData["Title"] = "Makale Durum Detayı";
+}
+
+<h2 class="text-center">📄 Makale Durum Detayı</h2>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <h5 class="card-title">Takip Numarası: @Model.TakipNumarasi</h5>
+        <p class="card-text">
+            <strong>Durum:</strong> @Model.Durum
+        </p>
+       
+        
+        <p class="card-text">
+            <strong>Orijinal Dosya:</strong> <a href="@Model.DosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a>
+        </p>
+       
+        @if (!string.IsNullOrEmpty(Model.DegerlendirmeDosyaYolu) && Model.Durum == ArticleStatus.YazaraIletildi)
+        {
+            <p class="card-text">
+                <strong>Değerlendirme Dosyası:</strong> <a href="@Model.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a>
+            </p>
+        }
+
+       
+    </div>
+</div>
+
+<a asp-action="Durum" class="btn btn-secondary mt-3">🔙 Geri Dön</a>

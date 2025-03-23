@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using makalesistemi.Models;
 
@@ -11,9 +12,11 @@ using makalesistemi.Models;
 namespace makalesistemi.Migrations
 {
     [DbContext(typeof(Context))]
-    partial class ContextModelSnapshot : ModelSnapshot
+    [Migration("20250322102723_TakipNumarasi")]
+    partial class TakipNumarasi
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -42,6 +45,30 @@ namespace makalesistemi.Migrations
                     b.HasIndex("MakaleId");
 
                     b.ToTable("Anonimlestirmeler");
+                });
+
+            modelBuilder.Entity("makalesistemi.Models.Degerlendirme", b =>
+                {
+                    b.Property<int>("Id")
+                        .HasColumnType("int");
+
+                    b.Property<int>("MakaleId")
+                        .HasColumnType("int");
+
+                    b.Property<int>("HakemId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("HakemDegerlendirmesi")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id", "MakaleId", "HakemId");
+
+                    b.HasIndex("HakemId");
+
+                    b.HasIndex("MakaleId");
+
+                    b.ToTable("Degerlendirme");
                 });
 
             modelBuilder.Entity("makalesistemi.Models.Editor", b =>
@@ -141,36 +168,6 @@ namespace makalesistemi.Migrations
                     b.ToTable("Makaleler");
                 });
 
-            modelBuilder.Entity("makalesistemi.Models.Sohbet", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("GondericiId")
-                        .HasColumnType("int");
-
-                    b.Property<string>("Icerik")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<int>("MakaleId")
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Tarih")
-                        .HasColumnType("datetime2");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("GondericiId");
-
-                    b.HasIndex("MakaleId");
-
-                    b.ToTable("Sohbetler");
-                });
-
             modelBuilder.Entity("makalesistemi.Models.Yazar", b =>
                 {
                     b.Property<int>("Id")
@@ -195,6 +192,25 @@ namespace makalesistemi.Migrations
                         .HasForeignKey("MakaleId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Makale");
+                });
+
+            modelBuilder.Entity("makalesistemi.Models.Degerlendirme", b =>
+                {
+                    b.HasOne("makalesistemi.Models.Hakem", "Hakem")
+                        .WithMany("Degerlendirmeler")
+                        .HasForeignKey("HakemId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("makalesistemi.Models.Makale", "Makale")
+                        .WithMany()
+                        .HasForeignKey("MakaleId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Hakem");
 
                     b.Navigation("Makale");
                 });
@@ -228,27 +244,10 @@ namespace makalesistemi.Migrations
                     b.Navigation("Yazar");
                 });
 
-            modelBuilder.Entity("makalesistemi.Models.Sohbet", b =>
-                {
-                    b.HasOne("makalesistemi.Models.Yazar", "Gonderici")
-                        .WithMany("Sohbetler")
-                        .HasForeignKey("GondericiId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.HasOne("makalesistemi.Models.Makale", "Makale")
-                        .WithMany("Sohbetler")
-                        .HasForeignKey("MakaleId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Gonderici");
-
-                    b.Navigation("Makale");
-                });
-
             modelBuilder.Entity("makalesistemi.Models.Hakem", b =>
                 {
+                    b.Navigation("Degerlendirmeler");
+
                     b.Navigation("Makaleler");
                 });
 
@@ -257,15 +256,11 @@ namespace makalesistemi.Migrations
                     b.Navigation("Anonimlestirmeler");
 
                     b.Navigation("Loglar");
-
-                    b.Navigation("Sohbetler");
                 });
 
             modelBuilder.Entity("makalesistemi.Models.Yazar", b =>
                 {
                     b.Navigation("Makaleler");
-
-                    b.Navigation("Sohbetler");
                 });
 #pragma warning restore 612, 618
         }

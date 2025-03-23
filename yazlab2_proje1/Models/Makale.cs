@@ -34,6 +34,8 @@ namespace makalesistemi.Models
 
         public string? DegerlendirmeDosyaYolu { get; set; }  // 🔹 Değerlendirme dosyasının yolu
 
+        public string? TakipNumarasi { get; set; }  // 🔹 Makaleye verilen takip numarası
+
 
         [ForeignKey("YazarId")]
         public Yazar Yazar { get; set; }
@@ -45,5 +47,6 @@ namespace makalesistemi.Models
 
         public List<Log> Loglar { get; set; } = new();
         public List<Anonimlestirme> Anonimlestirmeler { get; set; } = new();
+        public List<Sohbet> Sohbetler { get; set; } = new();
     }
 }

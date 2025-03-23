@@ -54,17 +54,70 @@ namespace makalesistemi.Controllers
                 await Dosya.CopyToAsync(fileStream);
             }
 
+            // 📌 Rastgele 3 harf ve 3 rakamlı takip numarası oluşturma
+            string takipNumarasi;
+            do
+            {
+                takipNumarasi = GenerateRandomString(3) + new Random().Next(100, 999).ToString(); // Örn: ABC123
+            } while (await _context.Makaleler.AnyAsync(m => m.TakipNumarasi == takipNumarasi));
+
             var yeniMakale = new Makale
             {
                 YazarId = mevcutYazar.Id,
                 DosyaYolu = "/makaleler/" + uniqueFileName,
-                HakemId = null
+                HakemId = null,
+                TakipNumarasi = takipNumarasi // 🔹 Takip numarasını ata
             };
             _context.Makaleler.Add(yeniMakale);
             await _context.SaveChangesAsync();
 
-            ViewData["Message"] = "Makale başarıyla yüklendi!";
+            ViewData["Message"] = $"Makale başarıyla yüklendi! Takip Numaranız: {takipNumarasi}";
             return View();
         }
+
+        // 📌 Rastgele 3 harfli string oluşturma fonksiyonu
+        private string GenerateRandomString(int length)
+        {
+            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            Random random = new Random();
+            return new string(Enumerable.Range(0, length)
+                                         .Select(_ => chars[random.Next(chars.Length)])
+                                         .ToArray());
+        }
+
+        // Makale Durum Sayfası (GET)
+        [HttpGet]
+        public IActionResult Durum()
+        {
+            return View();
+        }
+
+        // Takip Numarası ile Makale Durumu (GET)
+        // POST: Makale/Durum
+        [HttpPost]
+        public async Task<IActionResult> Durum(string takipNumarasi)
+        {
+            if (string.IsNullOrEmpty(takipNumarasi))
+            {
+                ViewData["ErrorMessage"] = "Lütfen bir takip numarası girin.";
+                return View();
+            }
+
+            var makale = await _context.Makaleler
+                .Include(m => m.Yazar)
+                .Include(m => m.Hakem)
+                .FirstOrDefaultAsync(m => m.TakipNumarasi == takipNumarasi);
+
+            if (makale == null)
+            {
+                ViewData["ErrorMessage"] = "Belirtilen takip numarasına ait makale bulunamadı.";
+                return View();
+            }
+
+            return View("DurumDetay", makale);
+        }
+
+
+
     }
 }

@@ -14,5 +14,6 @@ namespace makalesistemi.Models
         public string Eposta { get; set; }
 
         public List<Makale> Makaleler { get; set; } = new();
+        public List<Sohbet> Sohbetler { get; set; } = new();
     }
 }

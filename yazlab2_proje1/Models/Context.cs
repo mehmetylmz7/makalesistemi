@@ -22,13 +22,17 @@ namespace makalesistemi.Models
         public DbSet<Log> Loglar { get; set; }
         public DbSet<Anonimlestirme> Anonimlestirmeler { get; set; }
         
-        // public DbSet<Degerlendirme> Degerlendirmeler { get; set; }
+        public DbSet<Sohbet> Sohbetler { get; set; }    
+
+        //public DbSet<Mesaj> Mesajlar { get; set; }
+
+        // public DbSet<Degerlendirme> Degerlendirmeler { get; set; }   
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             // Birleşik anahtarları belirtin (Eğer Gerekirse)
-            modelBuilder.Entity<Degerlendirme>()
-                .HasKey(d => new { d.Id, d.MakaleId, d.HakemId });
+          //  modelBuilder.Entity<Degerlendirme>()
+             //   .HasKey(d => new { d.Id, d.MakaleId, d.HakemId });
 
             // Makale - Yazar ilişkisi (1-N)
             modelBuilder.Entity<Makale>()
@@ -57,20 +61,34 @@ namespace makalesistemi.Models
                 .WithMany(m => m.Anonimlestirmeler)
                 .HasForeignKey(a => a.MakaleId)
                 .OnDelete(DeleteBehavior.Cascade);
-/*
-            // Makale - Değerlendirme ilişkisi (1-N)
-            modelBuilder.Entity<Degerlendirme>()
-                .HasOne(d => d.Makale)
-                .WithMany(m => m.Degerlendirmeler)
-                .HasForeignKey(d => d.MakaleId)
-                .OnDelete(DeleteBehavior.Cascade); */
+            /*
+                        // Makale - Değerlendirme ilişkisi (1-N)
+                        modelBuilder.Entity<Degerlendirme>()
+                            .HasOne(d => d.Makale)
+                            .WithMany(m => m.Degerlendirmeler)
+                            .HasForeignKey(d => d.MakaleId)
+                            .OnDelete(DeleteBehavior.Cascade); */
 
             // Hakem - Değerlendirme ilişkisi (1-N)
-            modelBuilder.Entity<Degerlendirme>()
-                .HasOne(d => d.Hakem)
-                .WithMany(h => h.Degerlendirmeler)
-                .HasForeignKey(d => d.HakemId)
-                .OnDelete(DeleteBehavior.Cascade);
+            // modelBuilder.Entity<Degerlendirme>()
+            //   .HasOne(d => d.Hakem)
+            //  .WithMany(h => h.Degerlendirmeler)
+            // .HasForeignKey(d => d.HakemId)
+            //   .OnDelete(DeleteBehavior.Cascade);
+            // Sohbet - Yazar ilişkisi (1-N)
+
+            modelBuilder.Entity<Sohbet>()
+                .HasOne(s => s.Gonderici) // Sohbet'in bir Göndericisi (Yazar) var
+                .WithMany(y => y.Sohbetler) // Yazar'ın birden fazla Sohbet'i olabilir
+                .HasForeignKey(s => s.GondericiId) // Sohbet'in GondericiId'si Yazar'ın Id'si ile ilişkili
+                .OnDelete(DeleteBehavior.Restrict); // Yazar silinirse, Sohbet'ler silinmesin
+
+            // Sohbet - Makale ilişkisi (1-N)
+            modelBuilder.Entity<Sohbet>()
+                .HasOne(s => s.Makale) // Sohbet'in bir Makalesi var
+                .WithMany(m => m.Sohbetler) // Makale'nin birden fazla Sohbet'i olabilir
+                .HasForeignKey(s => s.MakaleId) // Sohbet'in MakaleId'si Makale'nin Id'si ile ilişkili
+                .OnDelete(DeleteBehavior.Cascade); // Makale silinirse, ilişkili Sohbet'ler de silinsin
         }
     }
 }

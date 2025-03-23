@@ -1,0 +1,20 @@
+﻿@{
+    ViewData["Title"] = "Makale Durum Sorgulama";
+}
+
+<h2 class="text-center">📄 Makale Durum Sorgulama</h2>
+
+@if (ViewData["ErrorMessage"] != null)
+{
+    <div class="alert alert-danger text-center">
+        @ViewData["ErrorMessage"]
+    </div>
+}
+
+<form asp-action="Durum" method="post" class="mt-4">
+    <div class="form-group">
+        <label for="takipNumarasi">Takip Numarası:</label>
+        <input type="text" class="form-control" id="takipNumarasi" name="takipNumarasi" required />
+    </div>
+    <button type="submit" class="btn btn-primary mt-3">🔍 Sorgula</button>
+</form>
