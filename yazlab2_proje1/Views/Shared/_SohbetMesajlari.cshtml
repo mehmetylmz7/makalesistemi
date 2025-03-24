@@ -1,0 +1,24 @@
+﻿@model List<makalesistemi.Models.Sohbet>
+
+@foreach (var mesaj in Model)
+{
+    string gondericiRolu;
+
+    if (mesaj.GondericiId == 2)
+    {
+        gondericiRolu = "Admin";
+    }
+   
+    else
+    {
+        gondericiRolu = "Yazar";
+    }
+
+    <div class="message @(mesaj.GondericiId == ViewBag.KullaniciID ? "text-end" : "text-start")">
+        <div class="alert @(mesaj.GondericiId == ViewBag.KullaniciID ? "alert-primary" : "alert-secondary") d-inline-block">
+            <strong>@gondericiRolu:</strong> @mesaj.Icerik
+            <br>
+            <small class="text-muted">@mesaj.Tarih.ToString("dd.MM.yyyy HH:mm")</small>
+        </div>
+    </div>
+}

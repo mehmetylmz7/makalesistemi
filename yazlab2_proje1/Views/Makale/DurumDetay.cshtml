@@ -10,24 +10,62 @@
 <div class="card mt-4">
     <div class="card-body">
         <h5 class="card-title">Takip Numarası: @Model.TakipNumarasi</h5>
-        <p class="card-text">
-            <strong>Durum:</strong> @Model.Durum
-        </p>
-       
-        
-        <p class="card-text">
-            <strong>Orijinal Dosya:</strong> <a href="@Model.DosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a>
-        </p>
-       
+        <p class="card-text"><strong>Durum:</strong> @Model.Durum</p>
+        <p class="card-text"><strong>Orijinal Dosya:</strong> <a href="@Model.DosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a></p>
+
         @if (!string.IsNullOrEmpty(Model.DegerlendirmeDosyaYolu) && Model.Durum == ArticleStatus.YazaraIletildi)
         {
-            <p class="card-text">
-                <strong>Değerlendirme Dosyası:</strong> <a href="@Model.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a>
-            </p>
+            <p class="card-text"><strong>Değerlendirme Dosyası:</strong> <a href="@Model.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-link">📄 Görüntüle</a></p>
         }
+    </div>
+</div>
 
-       
+<h3 class="text-center">📩 Mesajlaşma</h3>
+
+<div class="card mt-4">
+    <div class="card-body">
+        <!-- Mesajları Görüntüle Butonu -->
+        <button id="mesajlariGoruntule" class="btn btn-info mb-3">Mesajları Görüntüle</button>
+
+        <!-- Sohbet Kutusu -->
+        <div id="chatBox" class="chat-box border p-3 mb-3" style="max-height: 400px; overflow-y: auto;">
+            @await Html.PartialAsync("_SohbetMesajlari", Model.Sohbetler.OrderBy(m => m.Tarih).ToList())
+        </div>
+
+        <!-- Mesaj Gönderme Formu -->
+        <form id="mesajForm">
+            <input type="hidden" name="makaleId" value="@Model.Id" />
+            <div class="input-group">
+                <textarea id="mesajInput" name="icerik" class="form-control" placeholder="Mesajınızı yazın..." rows="1"></textarea>
+                <button type="submit" class="btn btn-primary">Gönder</button>
+            </div>
+        </form>
     </div>
 </div>
 
 <a asp-action="Durum" class="btn btn-secondary mt-3">🔙 Geri Dön</a>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script>
+    $(document).ready(function () {
+        // Mesajları Görüntüle Butonu
+        $("#mesajlariGoruntule").click(function () {
+            $.get("/Sohbet/MesajlariYenile", { makaleId: @Model.Id }, function (data) {
+                $("#chatBox").html(data); // Mesajları yükle
+                $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight); // Sohbeti en alta kaydır
+            });
+        });
+
+        // Mesaj Gönderme Formu
+        $("#mesajForm").submit(function (event) {
+            event.preventDefault(); // Sayfanın yenilenmesini engelle
+
+            var formData = $(this).serialize(); // Form verilerini al
+            $.post("/Sohbet/MesajGonder", formData, function (data) {
+                $("#chatBox").html(data); // Güncellenmiş mesajları ekrana bas
+                $("#mesajInput").val(""); // Mesaj giriş kutusunu temizle
+                $("#chatBox").scrollTop($("#chatBox")[0].scrollHeight); // Sohbeti en alta kaydır
+            });
+        });
+    });
+</script>

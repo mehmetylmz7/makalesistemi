@@ -11,7 +11,7 @@ namespace makalesistemi.Models
         {
             if (!optionsBuilder.IsConfigured)
             {
-                optionsBuilder.UseSqlServer("server=DIDIM\\SQLEXPRESS; database=makalesistemi; integrated security=true;TrustServerCertificate=True;");
+                optionsBuilder.UseSqlServer("server=DIDIM\\SQLEXPRESS; database=makalesistemi2; integrated security=true;TrustServerCertificate=True;");
             }
         }
 

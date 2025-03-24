@@ -40,6 +40,52 @@ namespace makalesistemi.Controllers
 
             return View(Tuple.Create(anonimMakaleListesi, anonimDegilMakaleListesi,editoreIletilenMakaleListesi, hakemListesi));
         }
+        public IActionResult Sohbet(int? makaleId)
+        {
+            // Admin'in görebileceği tüm makaleleri getir (DropDown için)
+            var makaleler = _context.Makaleler.Include(m => m.Yazar).ToList();
+
+            // Seçili makaleye ait mesajları getir
+            var mesajlar = makaleId.HasValue
+                ? _context.Sohbetler
+                    .Include(s => s.Gonderici)
+                    .Where(s => s.MakaleId == makaleId)
+                    .OrderBy(s => s.Tarih)
+                    .ToList()
+                : new List<Sohbet>();
+
+            ViewBag.Makaleler = makaleler;
+            ViewBag.SeciliMakaleId = makaleId;
+
+            return View(mesajlar);
+        }
+
+        [HttpPost]
+        public IActionResult MesajGonder(int makaleId, string mesajIcerik)
+        {
+            if (string.IsNullOrWhiteSpace(mesajIcerik))
+            {
+                TempData["Hata"] = "Mesaj boş olamaz!";
+                return RedirectToAction("Sohbet", new { makaleId });
+            }
+
+            // Admin ID'si (Admin giriş sistemine göre dinamik yapılabilir)
+            int adminId = 2; // Admin ID sistemde nasıl tutuluyorsa ona göre değiştirilebilir.
+
+            var yeniMesaj = new Sohbet
+            {
+                GondericiId = adminId,
+                Icerik = mesajIcerik,
+                MakaleId = makaleId,
+                Tarih = DateTime.Now
+            };
+
+            _context.Sohbetler.Add(yeniMesaj);
+            _context.SaveChanges();
+
+            return RedirectToAction("Sohbet", new { makaleId });
+        }
+
 
 
         [HttpGet]

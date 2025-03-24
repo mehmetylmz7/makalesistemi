@@ -10,6 +10,11 @@
 
 <h2 class="text-center">📌 Yönetici Paneli</h2>
 
+<div class="position-absolute top-0 end-0 p-3">
+    <a asp-controller="Admin" asp-action="Sohbet" class="btn btn-info">💬 Sohbet</a>
+</div>
+
+
 @if (ViewData["Message"] != null)
 {
     <div class="alert alert-info text-center">

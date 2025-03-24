@@ -1,0 +1,49 @@
+﻿@model List<makalesistemi.Models.Sohbet>
+@{
+    ViewData["Title"] = "Admin Sohbet Paneli";
+    var makaleler = ViewBag.Makaleler as List<makalesistemi.Models.Makale>;
+    int? seciliMakaleId = ViewBag.SeciliMakaleId as int?;
+}
+
+<h2>Admin Sohbet Paneli</h2>
+
+<!-- Makale Seçimi -->
+<form method="get" asp-action="Sohbet">
+    <label>Makale Seç:</label>
+    <select name="makaleId" onchange="this.form.submit()">
+        <option value="">Makale Seçiniz...</option>
+        @foreach (var makale in makaleler)
+        {
+            <option value="@makale.Id" selected="@(makale.Id == seciliMakaleId)">
+                @($"Makale {makale.Id} - {makale.Yazar.Eposta}")
+            </option>
+        }
+    </select>
+</form>
+
+@if (seciliMakaleId.HasValue)
+{
+    <h3>Seçili Makale: @seciliMakaleId</h3>
+
+    <div style="border:1px solid #ccc; padding:10px; height:300px; overflow-y:scroll;">
+        @foreach (var mesaj in Model)
+        {
+            <p><b>@mesaj.Gonderici.Eposta:</b> @mesaj.Icerik</p>
+        }
+    </div>
+
+    <form method="post" asp-action="MesajGonder">
+        <input type="hidden" name="makaleId" value="@seciliMakaleId" />
+        <textarea name="mesajIcerik" rows="3" placeholder="Mesajınızı yazın..."></textarea><br>
+        <button type="submit">Gönder</button>
+    </form>
+
+    @if (TempData["Hata"] != null)
+    {
+        <p style="color:red;">@TempData["Hata"]</p>
+    }
+}
+else
+{
+    <p>Lütfen bir makale seçin.</p>
+}

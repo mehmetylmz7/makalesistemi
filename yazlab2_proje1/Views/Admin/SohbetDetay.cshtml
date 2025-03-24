@@ -1,0 +1,32 @@
+﻿@model List<makalesistemi.Models.Sohbet>
+
+@{
+    ViewData["Title"] = "Sohbet Detayları";
+}
+
+<h2 class="text-center">💬 Makale Sohbeti</h2>
+
+<div class="border p-3 mb-3" style="max-height: 500px; overflow-y: auto;">
+    @foreach (var mesaj in Model)
+    {
+        bool gondericiAdminMi = mesaj.GondericiId == ViewBag.AdminID;
+
+        <div class="message @(gondericiAdminMi ? "text-end" : "text-start")">
+            <div class="alert @(gondericiAdminMi ? "alert-primary" : "alert-secondary") d-inline-block">
+                <strong>@(gondericiAdminMi ? "Admin" : "Kullanıcı"):</strong> @mesaj.Icerik
+                <br>
+                <small class="text-muted">@mesaj.Tarih.ToString("dd.MM.yyyy HH:mm")</small>
+            </div>
+        </div>
+    }
+</div>
+
+<form asp-controller="Admin" asp-action="SohbetGonder" method="post">
+    <input type="hidden" name="makaleId" value="@ViewBag.MakaleId" />
+    <div class="input-group">
+        <input type="text" name="mesaj" class="form-control" placeholder="Mesajınızı yazın..." required>
+        <button type="submit" class="btn btn-primary">Gönder</button>
+    </div>
+</form>
+
+<a asp-controller="Admin" asp-action="Sohbet" class="btn btn-secondary mt-3">⬅️ Geri Dön</a>
