@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
+using Newtonsoft.Json;
 
 namespace makalesistemi.Controllers
 {
@@ -19,6 +20,54 @@ namespace makalesistemi.Controllers
             _context = context;
             _hostEnvironment = hostEnvironment;
             _pdfAnonymizationService = pdfAnonymizationService;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> MakaleKonusunuBul(int makaleId)
+        {
+            try
+            {
+                var makale = await _context.Makaleler.FindAsync(makaleId);
+                if (makale == null)
+                {
+                    return Json(new { success = false, message = "Makale bulunamadı." });
+                }
+
+                string dosyaYolu = Path.Combine(_hostEnvironment.WebRootPath, makale.AnonimDosyaYolu.TrimStart('/'));
+                if (!System.IO.File.Exists(dosyaYolu))
+                {
+                    return Json(new { success = false, message = "Makale dosyası mevcut değil." });
+                }
+
+                string jsonDosyaYolu = Path.Combine(_hostEnvironment.WebRootPath, "json", "konular.json");
+                if (!System.IO.File.Exists(jsonDosyaYolu))
+                {
+                    return Json(new { success = false, message = "Konular JSON dosyası bulunamadı." });
+                }
+
+                string makaleIcerigi = await System.IO.File.ReadAllTextAsync(dosyaYolu);
+                string jsonVeri = await System.IO.File.ReadAllTextAsync(jsonDosyaYolu);
+                var konuVerileri = JsonConvert.DeserializeObject<Dictionary<string, List<string>>>(jsonVeri);
+
+                var konuSayac = new Dictionary<string, int>();
+                foreach (var konu in konuVerileri)
+                {
+                    int sayac = konu.Value.Count(kelime => makaleIcerigi.Contains(kelime, StringComparison.OrdinalIgnoreCase));
+                    konuSayac[konu.Key] = sayac;
+                }
+
+                var enIyiKonu = konuSayac.OrderByDescending(k => k.Value).FirstOrDefault();
+                string mesaj = enIyiKonu.Value > 0
+                    ? $"<p>Makale büyük ihtimalle '<strong>{enIyiKonu.Key}</strong>' konusundadır.</p>" +
+                      $"<p>Eşleşen anahtar kelime sayısı: {enIyiKonu.Value}</p>"
+                    : "<p>Makalenin konusu belirlenemedi.</p>";
+
+                return Json(new { success = true, message = mesaj });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = $"Bir hata oluştu: {ex.Message}" });
+            }
         }
 
         [HttpGet]
