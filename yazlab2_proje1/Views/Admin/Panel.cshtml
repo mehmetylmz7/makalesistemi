@@ -103,6 +103,12 @@
                 <td><a href="@makale.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
                 <td>
                     <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
+
+                    <!-- Yazara İlet Butonu -->
+                    <form asp-controller="Admin" asp-action="YazaraIlet" method="post" class="d-inline">
+                        <input type="hidden" name="makaleId" value="@makale.Id" />
+                        <button type="submit" class="btn btn-danger">📩 Yazara İlet</button>
+                    </form>
                 </td>
             </tr>
         }

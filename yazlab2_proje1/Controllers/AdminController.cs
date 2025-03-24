@@ -86,6 +86,25 @@ namespace makalesistemi.Controllers
             return RedirectToAction("Sohbet", new { makaleId });
         }
 
+        [HttpPost]
+        public async Task<IActionResult> YazaraIlet(int makaleId)
+        {
+            var makale = await _context.Makaleler.FindAsync(makaleId);
+            if (makale == null)
+            {
+                return NotFound();
+            }
+
+            // Makalenin durumunu "Yazara İletildi" olarak güncelle
+            makale.Durum = ArticleStatus.YazaraIletildi;
+            _context.Makaleler.Update(makale);
+            await _context.SaveChangesAsync();
+
+            ViewData["Message"] = "Makale başarıyla yazara iletildi!";
+            return RedirectToAction("Panel");
+        }
+
+
 
 
         [HttpGet]
