@@ -1,0 +1,4 @@
+input_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\makaleler/8d10d580-b6f4-41b2-b487-522a9a1622ea.pdf
+output_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_5_20250326140022.pdf
+Dosya var mi?: True
+[OK] PDF kaydedildi: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_5_20250326140022.pdf

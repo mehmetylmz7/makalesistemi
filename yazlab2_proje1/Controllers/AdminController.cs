@@ -307,13 +307,25 @@ namespace makalesistemi.Controllers
         {
             try
             {
+                if (secilenAlanlar == null || !secilenAlanlar.Any())
+                {
+                    TempData["ErrorMessage"] = "Lütfen en az bir alan seçiniz!";
+                    return RedirectToAction("AnonimlestirmeSonuc", new { id });
+                }
+
                 var makale = await _context.Makaleler.FindAsync(id);
                 if (makale == null)
-                    return NotFound("Makale bulunamadı!");
+                {
+                    TempData["ErrorMessage"] = "Makale bulunamadı!";
+                    return RedirectToAction("Panel");
+                }
 
                 string inputPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu?.TrimStart('/') ?? "");
                 if (!System.IO.File.Exists(inputPath))
-                    return NotFound("Makale dosyası bulunamadı!");
+                {
+                    TempData["ErrorMessage"] = "Makale dosyası bulunamadı!";
+                    return RedirectToAction("Panel");
+                }
 
                 string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "anonim_makaleler");
                 if (!Directory.Exists(outputDir))
@@ -326,35 +338,12 @@ namespace makalesistemi.Controllers
                 string scriptPath = Path.Combine(Directory.GetCurrentDirectory(), "Python_script", "anonimlestir.py");
                 string selectedAreasJson = System.Text.Json.JsonSerializer.Serialize(secilenAlanlar);
 
-                var psi = new ProcessStartInfo
-                {
-                    FileName = "python",
-                    Arguments = $"\"{scriptPath}\" \"{inputPath}\" \"{outputPath}\" \"{selectedAreasJson}\"",
-                    RedirectStandardOutput = true,
-                    RedirectStandardError = true,
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                };
-
-                using (var process = new Process { StartInfo = psi })
-                {
-                    process.Start();
-                    string output = await process.StandardOutput.ReadToEndAsync();
-                    string error = await process.StandardError.ReadToEndAsync();
-                    await process.WaitForExitAsync();
-
-                    if (!string.IsNullOrEmpty(error))
-                        throw new Exception($"Python hatası: {error}");
-
-                    if (!System.IO.File.Exists(outputPath))
-                        throw new Exception("Anonimleştirilmiş dosya oluşturulamadı!");
-                }
+              AnonimlestirPdf(inputPath, outputPath, secilenAlanlar);   
 
                 // Veritabanını güncelle
                 makale.AnonimDosyaYolu = "/anonim_makaleler/" + outputFileName;
                 makale.Durum = ArticleStatus.Anonimlesti;
                 _context.Makaleler.Update(makale);
-
                 await _context.SaveChangesAsync();
 
                 TempData["SuccessMessage"] = "Makale başarıyla anonimleştirildi!";
