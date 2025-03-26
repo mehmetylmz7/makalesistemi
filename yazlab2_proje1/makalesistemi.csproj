@@ -25,6 +25,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Python_script\" />
     <Folder Include="Views\Sohbet\" />
     <Folder Include="wwwroot\makaleler\" />
     <Folder Include="wwwroot\anonim-makaleler\" />

@@ -33,6 +33,12 @@
                 <td>
                     <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
                     <a asp-controller="Admin" asp-action="Anonimlestir" asp-route-id="@makale.Id" class="btn btn-warning">🔏 Anonimleştir</a>
+                    <form asp-action="AnonimlestirmeTespit" method="post">
+                        <input type="hidden" name="id" value="@makale.Id" />
+                        <button type="submit" class="btn btn-info">Anonimleştirilecek Alanları Tespit Et</button>
+                    </form>
+
+
                 </td>
             </tr>
         }
@@ -63,6 +69,7 @@
                         <input type="hidden" name="makaleId" value="@makale.Id" />
                         <button type="submit" class="btn btn-info">📌 Makalenin Konusu</button>
                     </form>
+                 
 
                     <!-- 🔽 Hakem Seçme Formu -->
                     <form asp-controller="Admin" asp-action="HakemeYolla" method="post" class="d-inline">

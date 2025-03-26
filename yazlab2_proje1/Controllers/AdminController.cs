@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using System.IO;
 using Microsoft.AspNetCore.Hosting;
 using Newtonsoft.Json;
+using System.Diagnostics;
+using System.Text.Json;
+
 
 namespace makalesistemi.Controllers
 {
@@ -231,9 +234,7 @@ namespace makalesistemi.Controllers
                 throw;
             }
 
-            // Anonimleştirme kaydı ekleme
-           // var yeniAnonimlestirme = new Anonimlestirme { MakaleId = id };
-           // _context.Anonimlestirmeler.Add(yeniAnonimlestirme);
+           
 
             // 🔹 Makale tablosunda AnonimDosyaYolu'nu güncelle
             makale.AnonimDosyaYolu = "/makaleler/" + Path.GetFileName(outputPath);
@@ -244,6 +245,157 @@ namespace makalesistemi.Controllers
 
             ViewData["Message"] = "Makale başarıyla anonimleştirildi!";
             return RedirectToAction("Panel");
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AnonimlestirmeTespit(int id)
+        {
+            var makale = await _context.Makaleler.FindAsync(id);
+            if (makale == null)
+            {
+                return NotFound("Makale bulunamadı");
+            }
+
+            string scriptPath = Path.Combine(Directory.GetCurrentDirectory(), "Python_script", "anonim_tespit.py");
+            string pdfPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu.TrimStart('/'));
+
+            if (!System.IO.File.Exists(pdfPath))
+            {
+                return NotFound("PDF dosyası bulunamadı");
+            }
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = $"\"{scriptPath}\" \"{pdfPath}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            try
+            {
+                using (var process = new Process { StartInfo = psi })
+                {
+                    process.Start();
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+
+                    if (!string.IsNullOrEmpty(error))
+                    {
+                        return StatusCode(500, $"Python Hatası: {error}");
+                    }
+
+                    var result = System.Text.Json.JsonSerializer.Deserialize<List<string>>(output);
+                    // View'e yönlendirme
+                    ViewData["MakaleId"] = id; // Makale ID'sini view'e taşı
+                    return View("~/Views/Admin/AnonimlestirmeSonuc.cshtml", result);
+                }
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"İşlem sırasında hata oluştu: {ex.Message}");
+            }
+        }
+
+
+
+        [HttpPost]
+        public async Task<IActionResult> Anonimlestir2(int id, List<string> secilenAlanlar)
+        {
+            try
+            {
+                var makale = await _context.Makaleler.FindAsync(id);
+                if (makale == null)
+                    return NotFound("Makale bulunamadı!");
+
+                string inputPath = Path.Combine(_hostEnvironment.WebRootPath, makale.DosyaYolu?.TrimStart('/') ?? "");
+                if (!System.IO.File.Exists(inputPath))
+                    return NotFound("Makale dosyası bulunamadı!");
+
+                string outputDir = Path.Combine(_hostEnvironment.WebRootPath, "anonim_makaleler");
+                if (!Directory.Exists(outputDir))
+                    Directory.CreateDirectory(outputDir);
+
+                string outputFileName = $"anonim_{makale.Id}_{DateTime.Now:yyyyMMddHHmmss}.pdf";
+                string outputPath = Path.Combine(outputDir, outputFileName);
+
+                // Python scriptini çalıştır
+                string scriptPath = Path.Combine(Directory.GetCurrentDirectory(), "Python_script", "anonimlestir.py");
+                string selectedAreasJson = System.Text.Json.JsonSerializer.Serialize(secilenAlanlar);
+
+                var psi = new ProcessStartInfo
+                {
+                    FileName = "python",
+                    Arguments = $"\"{scriptPath}\" \"{inputPath}\" \"{outputPath}\" \"{selectedAreasJson}\"",
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true,
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                };
+
+                using (var process = new Process { StartInfo = psi })
+                {
+                    process.Start();
+                    string output = await process.StandardOutput.ReadToEndAsync();
+                    string error = await process.StandardError.ReadToEndAsync();
+                    await process.WaitForExitAsync();
+
+                    if (!string.IsNullOrEmpty(error))
+                        throw new Exception($"Python hatası: {error}");
+
+                    if (!System.IO.File.Exists(outputPath))
+                        throw new Exception("Anonimleştirilmiş dosya oluşturulamadı!");
+                }
+
+                // Veritabanını güncelle
+                makale.AnonimDosyaYolu = "/anonim_makaleler/" + outputFileName;
+                makale.Durum = ArticleStatus.Anonimlesti;
+                _context.Makaleler.Update(makale);
+
+                await _context.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Makale başarıyla anonimleştirildi!";
+                return RedirectToAction("Panel");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = $"PDF anonimleştirme hatası: {ex.Message}";
+                return RedirectToAction("Panel");
+            }
+        }
+
+
+        private void AnonimlestirPdf(string inputPdf, string outputPdf, List<string> secilenAlanlar)
+        {
+            string scriptPath = Path.Combine(Directory.GetCurrentDirectory(), "Python_script", "anonim_yaz.py");
+
+            string tempJson = Path.Combine("Python_script", "temp_replacements.json");
+            string json = System.Text.Json.JsonSerializer.Serialize(secilenAlanlar);
+            System.IO.File.WriteAllText(tempJson, json);
+
+            var psi = new ProcessStartInfo
+            {
+                FileName = "python",
+                Arguments = $"\"{scriptPath}\" \"{inputPdf}\" \"{outputPdf}\" \"{tempJson}\"",
+                RedirectStandardOutput = true,
+                RedirectStandardError = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+
+            using (var process = new Process { StartInfo = psi })
+            {
+                process.Start();
+                string output = process.StandardOutput.ReadToEnd();
+                string error = process.StandardError.ReadToEnd();
+                process.WaitForExit();
+
+                if (!string.IsNullOrEmpty(error))
+                    throw new Exception("Python Hatası: " + error);
+            }
         }
 
 
