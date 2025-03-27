@@ -2,137 +2,209 @@
 
 @{
     ViewData["Title"] = "Yönetici Paneli";
-    var anonimMakaleListesi = Model.Item1; // Anonimleştirilmiş makaleler
-    var anonimDegilMakaleListesi = Model.Item2; // Anonimleştirilmemiş makaleler
-    var editoreIletilenMakaleListesi = Model.Item3; // Editöre iletilen makaleler
-    var hakemListesi = Model.Item4; // Hakemler
+    var anonimMakaleListesi = Model.Item1;
+    var anonimDegilMakaleListesi = Model.Item2;
+    var editoreIletilenMakaleListesi = Model.Item3;
+    var hakemListesi = Model.Item4;
 }
 
-<h2 class="text-center">📌 Yönetici Paneli</h2>
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                    <h2 class="mb-0"><i class="fas fa-cogs me-2"></i>Yönetici Paneli</h2>
+                    <a asp-controller="Admin" asp-action="Sohbet" class="btn btn-light">
+                        <i class="fas fa-comments me-1"></i> Sohbet
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-<div class="position-absolute top-0 end-0 p-3">
-    <a asp-controller="Admin" asp-action="Sohbet" class="btn btn-info">💬 Sohbet</a>
+    <!-- 🔴 Anonimleştirilmemiş Makaleler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-danger text-white">
+                    <h3 class="mb-0"><i class="fas fa-exclamation-circle me-2"></i>Anonimleştirilmemiş Makaleler</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Dosya Yolu</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var makale in anonimDegilMakaleListesi)
+                                {
+                                    <tr>
+                                        <td>@makale.Id</td>
+                                        <td>
+                                            <a href="@makale.DosyaYolu" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF Görüntüle
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i> Görüntüle
+                                                </a>
+                                                <a asp-controller="Admin" asp-action="Anonimlestir" asp-route-id="@makale.Id" class="btn btn-warning btn-sm">
+                                                    <i class="fas fa-lock me-1"></i> Anonimleştir
+                                                </a>
+                                                <form asp-action="AnonimlestirmeTespit" method="post" class="d-inline">
+                                                    <input type="hidden" name="id" value="@makale.Id" />
+                                                    <button type="submit" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-search me-1"></i> Alanları Tespit Et
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟢 Anonimleştirilmiş Makaleler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-success text-white">
+                    <h3 class="mb-0"><i class="fas fa-check-circle me-2"></i>Anonimleştirilmiş Makaleler</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Dosya Yolu</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var makale in anonimMakaleListesi)
+                                {
+                                    <tr>
+                                        <td>@makale.Id</td>
+                                        <td>
+                                            <a href="@makale.DosyaYolu" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF Görüntüle
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i> Görüntüle
+                                                </a>
+                                                <form asp-controller="Admin" asp-action="MakaleKonusunuBul" method="post" class="d-inline">
+                                                    <input type="hidden" name="makaleId" value="@makale.Id" />
+                                                    <button type="submit" class="btn btn-info btn-sm">
+                                                        <i class="fas fa-tag me-1"></i> Makalenin Konusu
+                                                    </button>
+                                                </form>
+                                                <form asp-controller="Admin" asp-action="HakemeYolla" method="post" class="d-inline">
+                                                    <input type="hidden" name="makaleId" value="@makale.Id" />
+                                                    <select name="hakemId" class="form-select form-select-sm d-inline-block w-auto">
+                                                        @foreach (var hakem in hakemListesi)
+                                                        {
+                                                            <option value="@hakem.Id">@hakem.Isim</option>
+                                                        }
+                                                    </select>
+                                                    <button type="submit" class="btn btn-success btn-sm">
+                                                        <i class="fas fa-paper-plane me-1"></i> Hakeme Yönlendir
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🟡 Editöre İletilen Makaleler -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card shadow-sm">
+                <div class="card-header bg-warning text-dark">
+                    <h3 class="mb-0"><i class="fas fa-envelope me-2"></i>Editöre İletilen Makaleler</h3>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Dosya Yolu</th>
+                                    <th>İşlemler</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var makale in editoreIletilenMakaleListesi)
+                                {
+                                    <tr>
+                                        <td>@makale.Id</td>
+                                        <td>
+                                            <a href="@makale.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-outline-primary btn-sm">
+                                                <i class="fas fa-file-pdf me-1"></i> PDF Görüntüle
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary btn-sm">
+                                                    <i class="fas fa-eye me-1"></i> Görüntüle
+                                                </a>
+                                                <form asp-controller="Admin" asp-action="YazaraIlet" method="post" class="d-inline">
+                                                    <input type="hidden" name="makaleId" value="@makale.Id" />
+                                                    <button type="submit" class="btn btn-danger btn-sm">
+                                                        <i class="fas fa-envelope me-1"></i> Yazara İlet
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
-
-<!-- 🔴 Anonimleştirilmemiş Makaleler -->
-<h3 class="mt-4">🔴 Anonimleştirilmemiş Makaleler</h3>
-<table class="table table-bordered">
-    <thead class="table-dark">
-        <tr>
-            <th>ID</th>
-            <th>Dosya Yolu</th>
-            <th>İşlemler</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var makale in anonimDegilMakaleListesi)
-        {
-            <tr>
-                <td>@makale.Id</td>
-                <td><a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
-                <td>
-                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
-                    <a asp-controller="Admin" asp-action="Anonimlestir" asp-route-id="@makale.Id" class="btn btn-warning">🔏 Anonimleştir</a>
-                    <form asp-action="AnonimlestirmeTespit" method="post">
-                        <input type="hidden" name="id" value="@makale.Id" />
-                        <button type="submit" class="btn btn-info">Anonimleştirilecek Alanları Tespit Et</button>
-                    </form>
-
-
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<!-- 🟢 Anonimleştirilmiş Makaleler -->
-<h3 class="mt-4">🟢 Anonimleştirilmiş Makaleler</h3>
-<table class="table table-bordered">
-    <thead class="table-success">
-        <tr>
-            <th>ID</th>
-            <th>Dosya Yolu</th>
-            <th>İşlemler</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var makale in anonimMakaleListesi)
-        {
-            <tr>
-                <td>@makale.Id</td>
-                <td><a href="@makale.DosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
-                <td>
-                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
-
-                    <!-- Makalenin Konusu Butonu -->
-                    <form asp-controller="Admin" asp-action="MakaleKonusunuBul" method="post" class="d-inline">
-                        <input type="hidden" name="makaleId" value="@makale.Id" />
-                        <button type="submit" class="btn btn-info">📌 Makalenin Konusu</button>
-                    </form>
-                 
-
-                    <!-- 🔽 Hakem Seçme Formu -->
-                    <form asp-controller="Admin" asp-action="HakemeYolla" method="post" class="d-inline">
-                        <input type="hidden" name="makaleId" value="@makale.Id" />
-
-                        <select name="hakemId" class="form-select d-inline w-auto">
-                            @foreach (var hakem in hakemListesi)
-                            {
-                                <option value="@hakem.Id">@hakem.Isim</option>
-                            }
-                        </select>
-
-                        <button type="submit" class="btn btn-success">📤 Hakeme Yönlendir</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<!-- 🟡 Editöre İletilen Makaleler -->
-<h3 class="mt-4">🟡 Editöre İletilen Makaleler</h3>
-<table class="table table-bordered">
-    <thead class="table-warning">
-        <tr>
-            <th>ID</th>
-            <th>Dosya Yolu</th>
-            <th>İşlemler</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var makale in editoreIletilenMakaleListesi)
-        {
-            <tr>
-                <td>@makale.Id</td>
-                <td><a href="@makale.DegerlendirmeDosyaYolu" target="_blank" class="btn btn-link">📄 PDF Görüntüle</a></td>
-                <td>
-                    <a asp-controller="Admin" asp-action="Goruntule" asp-route-id="@makale.Id" class="btn btn-primary">📄 Görüntüle</a>
-
-                    <!-- Yazara İlet Butonu -->
-                    <form asp-controller="Admin" asp-action="YazaraIlet" method="post" class="d-inline">
-                        <input type="hidden" name="makaleId" value="@makale.Id" />
-                        <button type="submit" class="btn btn-danger">📩 Yazara İlet</button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
 
 <!-- Konu Bilgisi Modal -->
 <div class="modal fade" id="konuModal" tabindex="-1" aria-labelledby="konuModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="konuModalLabel">Makale Konusu Bilgisi</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            <div class="modal-header bg-primary text-white">
+                <h5 class="modal-title" id="konuModalLabel">
+                    <i class="fas fa-info-circle me-2"></i>Makale Konusu Bilgisi
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body" id="konuModalBody">
                 <!-- Mesaj buraya gelecek -->
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Kapat</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times me-1"></i> Kapat
+                </button>
             </div>
         </div>
     </div>
@@ -143,10 +215,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         $(document).ready(function() {
-            // Makale konusu butonuna tıklanınca
             $('form[action*="MakaleKonusunuBul"]').submit(function(e) {
-                e.preventDefault(); // Formun normal submitini engelle
-
+                e.preventDefault();
                 var form = $(this);
                 var makaleId = form.find('input[name="makaleId"]').val();
 
@@ -156,7 +226,6 @@
                     data: form.serialize(),
                     success: function(response) {
                         if (response.success) {
-                            // Modal içeriğini güncelle ve göster
                             $('#konuModalBody').html(response.message);
                             $('#konuModal').modal('show');
                         } else {

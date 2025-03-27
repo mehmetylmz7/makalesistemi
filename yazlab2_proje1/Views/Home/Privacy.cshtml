@@ -1,6 +1,165 @@
 ﻿@{
-    ViewData["Title"] = "Privacy Policy";
+    ViewData["Title"] = "Gizlilik Politikası";
 }
-<h1>@ViewData["Title"]</h1>
 
-<p>Use this page to detail your site's privacy policy.</p>
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-10">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-shield-alt me-2"></i>Gizlilik Politikası
+                    </h1>
+                </div>
+                <div class="card-body">
+                    <div class="privacy-content">
+                        <section class="mb-5">
+                            <h2 class="h4 text-primary mb-3">
+                                <i class="fas fa-info-circle me-2"></i>Genel Bilgiler
+                            </h2>
+                            <p class="text-muted">
+                                Bu gizlilik politikası, Makale Anonimleştirme Sistemi'nin kullanıcı verilerini nasıl topladığını,
+                                kullandığını ve koruduğunu açıklamaktadır. Sistemimiz, akademik makalelerin güvenli bir şekilde
+                                anonimleştirilmesini sağlamak için tasarlanmıştır.
+                            </p>
+                        </section>
+
+                        <section class="mb-5">
+                            <h2 class="h4 text-primary mb-3">
+                                <i class="fas fa-database me-2"></i>Veri Toplama ve Kullanım
+                            </h2>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Makale Verileri:</strong> Yüklenen makaleler geçici olarak saklanır ve anonimleştirme
+                                    işlemi tamamlandıktan sonra güvenli bir şekilde silinir.
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Kullanıcı Bilgileri:</strong> Sadece gerekli minimum bilgiler saklanır ve
+                                    şifreleme ile korunur.
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>İşlem Kayıtları:</strong> Sistem kullanımı ile ilgili log kayıtları tutulur ve
+                                    güvenlik amaçlı saklanır.
+                                </li>
+                            </ul>
+                        </section>
+
+                        <section class="mb-5">
+                            <h2 class="h4 text-primary mb-3">
+                                <i class="fas fa-lock me-2"></i>Güvenlik Önlemleri
+                            </h2>
+                            <div class="row g-4">
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-shield-virus text-primary me-2"></i>SSL Şifreleme
+                                            </h5>
+                                            <p class="card-text text-muted">
+                                                Tüm veri transferleri SSL protokolü ile şifrelenir ve güvenli bir şekilde
+                                                gerçekleştirilir.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="card h-100 border-0 bg-light">
+                                        <div class="card-body">
+                                            <h5 class="card-title">
+                                                <i class="fas fa-user-shield text-primary me-2"></i>Veri Koruma
+                                            </h5>
+                                            <p class="card-text text-muted">
+                                                Kullanıcı verileri AES-256 şifreleme standardı ile korunur ve düzenli olarak
+                                                yedeklenir.
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </section>
+
+                        <section class="mb-5">
+                            <h2 class="h4 text-primary mb-3">
+                                <i class="fas fa-handshake me-2"></i>Kullanıcı Hakları
+                            </h2>
+                            <div class="alert alert-info">
+                                <h5 class="alert-heading">
+                                    <i class="fas fa-info-circle me-2"></i>Kullanıcıların Hakları
+                                </h5>
+                                <ul class="mb-0">
+                                    <li>Verilerine erişim hakkı</li>
+                                    <li>Veri düzeltme talebi hakkı</li>
+                                    <li>Veri silme talebi hakkı</li>
+                                    <li>Veri işlemeyi kısıtlama hakkı</li>
+                                </ul>
+                            </div>
+                        </section>
+
+                        <section class="mb-5">
+                            <h2 class="h4 text-primary mb-3">
+                                <i class="fas fa-envelope me-2"></i>İletişim
+                            </h2>
+                            <div class="card border-0 bg-light">
+                                <div class="card-body">
+                                    <p class="mb-0">
+                                        Gizlilik politikamız hakkında sorularınız için lütfen bizimle iletişime geçin:
+                                        <a href="mailto:tunahanefeozturk@gmail.com" class="text-primary">
+                                            <i class="fas fa-envelope me-1"></i>tunahanefeozturk@gmail.com
+                                        </a>
+                                    </p>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .privacy-content section {
+        animation: fadeIn 0.5s ease-out;
+    }
+
+    .card {
+        transition: transform 0.3s ease;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+        }
+
+    .list-unstyled li {
+        padding: 0.5rem 0;
+    }
+
+    .alert {
+        border: none;
+        box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    }
+
+    @@keyframes fadeIn {
+        from
+
+    {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+
+    }
+
+    @@media (max-width: 768px) {
+        .container {
+            padding: 1rem;
+        }
+    }
+</style>
