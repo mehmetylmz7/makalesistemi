@@ -1,4 +1,5 @@
-input_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\makaleler/8d10d580-b6f4-41b2-b487-522a9a1622ea.pdf
-output_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_5_20250326140022.pdf
+input_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\makaleler/96bfff4e-a0c3-4f6b-a8fc-3f1e7118882f.pdf
+output_pdf: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_10_20250327165706.pdf
 Dosya var mi?: True
-[OK] PDF kaydedildi: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_5_20250326140022.pdf
+[OK] PDF kaydedildi: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\anonim_10_20250327165706.pdf
+[OK] JSON kaydedildi: C:\Users\zlata\source\repos\yazlab2_proje1\yazlab2_proje1\wwwroot\anonim_makaleler\..\json\replacements_map.json
