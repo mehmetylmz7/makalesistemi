@@ -6,31 +6,6 @@ import json
 import os
 import random
 import string
-from Crypto.Cipher import AES
-from Crypto.Util.Padding import pad
-import base64
-
-# Sabit anahtar ve IV
-KEY = b'MakaleAnonimSistemi2024Key123456'  # 32 byte
-IV = b'AnonimSistemiIV'  # 16 byte
-
-def encrypt_text(text):
-    try:
-        # AES þifreleme nesnesi oluþtur
-        cipher = AES.new(KEY, AES.MODE_CBC, IV)
-        
-        # Metni bytes'a çevir ve padding ekle
-        text_bytes = text.encode('utf-8')
-        padded_text = pad(text_bytes, AES.block_size)
-        
-        # Metni þifrele
-        encrypted_text = cipher.encrypt(padded_text)
-        
-        # Base64 ile kodla
-        return base64.b64encode(encrypted_text).decode('utf-8')
-    except Exception as e:
-        print(f"Þifreleme hatasý: {str(e)}")
-        return ""
 
 def generate_unique_code():
     # 3 harf ve 3 rakamdan oluþan benzersiz kod
@@ -51,13 +26,7 @@ def anonymize_pdf(input_pdf, output_pdf, replacements):
         
         for inst, item in text_instances:
             unique_code = generate_unique_code()
-            encrypted_text = encrypt_text(item)
-            
-            # Her kod için detaylý bilgi sakla
-            replacements_map[unique_code] = {
-                "original": item,
-                "encrypted": encrypted_text
-            }
+            replacements_map[unique_code] = item
             
             # Redaksiyon için annotasyon ekle
             redact_annot = page.add_redact_annot(inst, fill=(1, 1, 1))
@@ -73,7 +42,7 @@ def anonymize_pdf(input_pdf, output_pdf, replacements):
             page.insert_text(
                 text_pos,
                 unique_code,
-                fontsize=9,  # Daha okunabilir boyut
+                fontsize=5,  # Daha okunabilir boyut
                 color=(0, 0, 0),  # Siyah renk
                 fontname="helv",  # Standart font
             )
